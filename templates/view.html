@@ -1,0 +1,161 @@
+{% extends "base.html" %}
+
+{% block title %}{{ file_data.title }} - CloudShare{% endblock %}
+
+{% block meta %}
+<meta property="og:title" content="{{ file_data.title }}">
+<meta property="og:description" content="{{ file_data.description or 'Dibagikan di CloudShare' }}">
+{% if file_data.resource_type == 'image' %}
+<meta property="og:image" content="{{ file_data.cloudinary_url }}">
+{% endif %}
+{% endblock %}
+
+{% set hide_tagline = true %}
+
+{% block extra_css %}
+.content {
+    animation: fadeInUp 0.8s ease;
+}
+
+.title-section {
+    text-align: center;
+    margin-bottom: 50px;
+}
+
+.file-title {
+    font-size: 42px;
+    font-weight: 700;
+    margin-bottom: 15px;
+    background: linear-gradient(135deg, #fff 0%, rgba(255,255,255,0.7) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    line-height: 1.3;
+}
+
+.file-description {
+    font-size: 16px;
+    color: rgba(255, 255, 255, 0.6);
+    line-height: 1.6;
+    max-width: 700px;
+    margin: 0 auto;
+    white-space: pre-wrap;
+    word-wrap: break-word;
+}
+
+.file-description a {
+    color: #667eea;
+    text-decoration: none;
+    border-bottom: 1px solid rgba(102, 126, 234, 0.3);
+    transition: all 0.3s ease;
+}
+
+.file-description a:hover {
+    border-bottom-color: #667eea;
+}
+
+.media-container {
+    margin-bottom: 50px;
+    border-radius: 16px;
+    overflow: hidden;
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(10px);
+}
+
+.media-container img {
+    width: 100%;
+    height: auto;
+    display: block;
+}
+
+.media-container video {
+    width: 100%;
+    aspect-ratio: 16 / 9;
+    display: block;
+    background: #000;
+}
+
+.actions {
+    display: flex;
+    gap: 15px;
+    justify-content: center;
+}
+
+@media (max-width: 600px) {
+    .file-title {
+        font-size: 32px;
+    }
+    
+    .actions {
+        flex-direction: column;
+    }
+}
+{% endblock %}
+
+{% block content %}
+<div class="content">
+    <div class="title-section">
+        <h1 class="file-title">{{ file_data.title }}</h1>
+        {% if file_data.description %}
+        <div class="file-description">{{ file_data.description | urlize }}</div>
+        {% endif %}
+    </div>
+    
+    <div class="media-container">
+        {% if file_data.resource_type == 'image' %}
+            <img src="{{ file_data.cloudinary_url }}" alt="{{ file_data.title }}">
+        {% elif file_data.resource_type == 'video' %}
+            <video src="{{ file_data.cloudinary_url }}" controls></video>
+        {% endif %}
+    </div>
+    
+    <div class="link-wrapper">
+        <div class="link-label">Link Berbagi</div>
+        <div class="link-container">
+            <input type="text" class="link-input" id="shareLink" value="{{ request.url }}" readonly>
+            <button class="copy-btn" onclick="copyLink()">Salin</button>
+        </div>
+    </div>
+    
+    <div class="info-grid">
+        <div class="info-item">
+            <div class="info-label">ID File</div>
+            <div class="info-value">{{ file_id }}</div>
+        </div>
+        <div class="info-item">
+            <div class="info-label">Ukuran</div>
+            <div class="info-value">{{ "%.2f"|format(file_data.bytes / 1024 / 1024) }} MB</div>
+        </div>
+        <div class="info-item">
+            <div class="info-label">Format</div>
+            <div class="info-value">{{ file_data.format.upper() }}</div>
+        </div>
+        <div class="info-item">
+            <div class="info-label">Tipe</div>
+            <div class="info-value">{{ 'Gambar' if file_data.resource_type == 'image' else 'Video' }}</div>
+        </div>
+        {% if file_data.width and file_data.height %}
+        <div class="info-item">
+            <div class="info-label">Dimensi</div>
+            <div class="info-value">{{ file_data.width }} × {{ file_data.height }}</div>
+        </div>
+        {% endif %}
+        {% if file_data.duration %}
+        <div class="info-item">
+            <div class="info-label">Durasi</div>
+            <div class="info-value">{{ "%.1f"|format(file_data.duration) }}d</div>
+        </div>
+        {% endif %}
+    </div>
+    
+    <div class="actions">
+        <a href="{{ file_data.cloudinary_url }}" download class="btn btn-primary" target="_blank">
+            Unduh
+        </a>
+        <a href="/" class="btn btn-secondary">
+            Upload Baru
+        </a>
+    </div>
+</div>
+{% endblock %}

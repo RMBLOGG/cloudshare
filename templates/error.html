@@ -1,0 +1,77 @@
+{% extends "base.html" %}
+
+{% block title %}Error - CloudShare{% endblock %}
+
+{% set hide_tagline = true %}
+
+{% block extra_css %}
+body::before {
+    background: 
+        radial-gradient(circle at 20% 50%, rgba(239, 68, 68, 0.3) 0%, transparent 50%),
+        radial-gradient(circle at 80% 80%, rgba(239, 68, 68, 0.2) 0%, transparent 50%);
+    animation: bgShift 10s ease-in-out infinite;
+}
+
+.error-container {
+    text-align: center;
+    max-width: 600px;
+    margin: 0 auto;
+    animation: fadeIn 0.8s ease;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.error-code {
+    font-size: 120px;
+    font-weight: 700;
+    background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    margin-bottom: 20px;
+    letter-spacing: -5px;
+    filter: drop-shadow(0 0 30px rgba(239, 68, 68, 0.3));
+}
+
+.error-title {
+    font-size: 36px;
+    font-weight: 700;
+    margin-bottom: 20px;
+    color: #fff;
+}
+
+.error-message {
+    font-size: 18px;
+    color: rgba(255, 255, 255, 0.6);
+    margin-bottom: 50px;
+    line-height: 1.6;
+}
+
+@media (max-width: 600px) {
+    .error-code {
+        font-size: 80px;
+    }
+    
+    .error-title {
+        font-size: 28px;
+    }
+}
+{% endblock %}
+
+{% block content %}
+<div class="error-container">
+    <div class="error-code">404</div>
+    <div class="error-title">Tersesat di Angkasa</div>
+    <div class="error-message">{{ error }}</div>
+    <a href="/" class="btn btn-primary">Kembali ke Beranda</a>
+</div>
+{% endblock %}
