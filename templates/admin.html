@@ -10,7 +10,7 @@
 /* Stats Grid */
 .stats-grid {
     display: grid;
-    grid-template-columns: repeat(4, 1fr);
+    grid-template-columns: repeat(3, 1fr);
     gap: 16px;
     margin-bottom: 40px;
     animation: fadeInUp 0.6s ease 0.1s backwards;
@@ -365,6 +365,16 @@
         <div class="stat-value" id="statLocked">{{ stats.locked }}</div>
         <div class="stat-label">Terproteksi</div>
     </div>
+    <div class="stat-card">
+        <div class="stat-icon">🧾</div>
+        <div class="stat-value" style="font-size:20px">{{ stats.pending_orders }}</div>
+        <div class="stat-label">Order Pending</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-icon">💰</div>
+        <div class="stat-value" style="font-size:18px">{{ stats.revenue }}</div>
+        <div class="stat-label">Total Pendapatan</div>
+    </div>
 </div>
 
 <!-- Upload Chart -->
@@ -380,40 +390,64 @@
     </div>
 </div>
 
-<!-- Upload Section -->
-<div id="uploadSection" style="margin-bottom:32px; animation: fadeInUp 0.6s ease 0.25s backwards;">
-    <div style="font-size:13px; color:rgba(255,255,255,0.4); text-transform:uppercase; letter-spacing:1.5px; margin-bottom:16px;">Upload File Baru</div>
-    <div style="background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.08); border-radius:16px; padding:24px;">
-        <div style="display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-bottom:16px;">
-            <div>
-                <label class="label">Judul</label>
-                <input type="text" id="upTitle" class="input-field" placeholder="Judul file" maxlength="100" style="padding:12px 16px;">
+<!-- Tab Nav -->
+<div style="display:flex; gap:8px; margin-bottom:20px; animation: fadeInUp 0.6s ease 0.3s backwards;">
+    <button class="tab-nav-btn active" onclick="showTab('files')" id="tabFiles" style="padding:10px 20px; border:1px solid rgba(102,126,234,0.3); background:rgba(102,126,234,0.15); color:#667eea; border-radius:50px; cursor:pointer; font-weight:600; font-family:'Space Grotesk',sans-serif; font-size:13px;">📁 File</button>
+    <button class="tab-nav-btn" onclick="showTab('orders')" id="tabOrders" style="padding:10px 20px; border:1px solid rgba(255,255,255,0.1); background:transparent; color:rgba(255,255,255,0.5); border-radius:50px; cursor:pointer; font-weight:600; font-family:'Space Grotesk',sans-serif; font-size:13px;">
+        🧾 Orders {% if stats.pending_orders > 0 %}<span style="background:#ef4444; color:#fff; border-radius:50%; width:18px; height:18px; display:inline-flex; align-items:center; justify-content:center; font-size:10px; margin-left:4px;">{{ stats.pending_orders }}</span>{% endif %}
+    </button>
+</div>
+
+<!-- Orders Section -->
+<div id="ordersSection" style="display:none; animation: fadeInUp 0.4s ease;">
+    <div style="background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.08); border-radius:16px; overflow:hidden;">
+        <div style="padding:16px 20px; background:rgba(255,255,255,0.04); border-bottom:1px solid rgba(255,255,255,0.08); display:grid; grid-template-columns:1fr 120px 80px 100px 90px 140px; font-size:11px; color:rgba(255,255,255,0.4); text-transform:uppercase; letter-spacing:1px; font-weight:600;">
+            <div>Pembeli</div><div>Tipe</div><div>Jumlah</div><div>Metode</div><div>Status</div><div>Aksi</div>
+        </div>
+        {% if orders %}
+            {% for order in orders %}
+            <div style="display:grid; grid-template-columns:1fr 120px 80px 100px 90px 140px; padding:14px 20px; border-bottom:1px solid rgba(255,255,255,0.05); align-items:center; font-size:13px;" id="order-{{ order.order_id }}">
+                <div>
+                    <div style="font-weight:600; color:rgba(255,255,255,0.9);">{{ order.name or '-' }}</div>
+                    <div style="font-size:11px; color:rgba(255,255,255,0.4);">{{ order.email }}</div>
+                    <div style="font-size:10px; color:rgba(255,255,255,0.3);">{{ order.order_id }}</div>
+                </div>
+                <div>
+                    {% if order.type == 'subscription' %}
+                        <span style="padding:3px 8px; border-radius:20px; font-size:11px; background:rgba(245,158,11,0.2); color:#f59e0b;">⭐ Langganan</span>
+                    {% else %}
+                        <span style="padding:3px 8px; border-radius:20px; font-size:11px; background:rgba(102,126,234,0.2); color:#667eea;">🎬 Video</span>
+                    {% endif %}
+                </div>
+                <div style="font-weight:600; color:rgba(255,255,255,0.8);">Rp {{ "{:,.0f}".format(order.amount).replace(",", ".") }}</div>
+                <div style="color:rgba(255,255,255,0.5); text-transform:uppercase; font-size:12px;">{{ order.payment_method }}</div>
+                <div>
+                    {% if order.status == 'pending' %}
+                        <span style="padding:3px 8px; border-radius:20px; font-size:11px; background:rgba(245,158,11,0.2); color:#f59e0b;">Pending</span>
+                    {% elif order.status == 'confirmed' %}
+                        <span style="padding:3px 8px; border-radius:20px; font-size:11px; background:rgba(16,185,129,0.2); color:#10b981;">✓ Konfirmasi</span>
+                    {% else %}
+                        <span style="padding:3px 8px; border-radius:20px; font-size:11px; background:rgba(239,68,68,0.2); color:#ef4444;">Ditolak</span>
+                    {% endif %}
+                </div>
+                <div style="display:flex; gap:6px; align-items:center; flex-wrap:wrap;">
+                    {% if order.proof_url %}
+                        <button onclick="window.open('{{ order.proof_url }}','_blank')" style="padding:5px 10px; background:rgba(102,126,234,0.15); border:none; border-radius:6px; color:#667eea; cursor:pointer; font-size:12px;">📸 Bukti</button>
+                    {% endif %}
+                    {% if order.status == 'pending' %}
+                        <button onclick="confirmOrder('{{ order.order_id }}','confirm')" style="padding:5px 10px; background:rgba(16,185,129,0.15); border:none; border-radius:6px; color:#10b981; cursor:pointer; font-size:12px; font-weight:600;">✓ OK</button>
+                        <button onclick="confirmOrder('{{ order.order_id }}','reject')" style="padding:5px 10px; background:rgba(239,68,68,0.15); border:none; border-radius:6px; color:#ef4444; cursor:pointer; font-size:12px; font-weight:600;">✗</button>
+                    {% endif %}
+                </div>
             </div>
-            <div>
-                <label class="label">Kata Sandi (opsional)</label>
-                <input type="password" id="upPassword" class="input-field" placeholder="Kosongkan = publik" maxlength="50" style="padding:12px 16px;">
-            </div>
-        </div>
-        <div style="margin-bottom:16px;">
-            <label class="label">Deskripsi (opsional)</label>
-            <input type="text" id="upDescription" class="input-field" placeholder="Tambahkan deskripsi..." maxlength="500" style="padding:12px 16px;">
-        </div>
-        <div id="upDropZone" style="border:2px dashed rgba(255,255,255,0.15); border-radius:12px; padding:32px; text-align:center; cursor:pointer; transition:all 0.3s ease;" onclick="document.getElementById('upFileInput').click()">
-            <div style="font-size:32px; margin-bottom:8px;">⚡</div>
-            <div style="color:rgba(255,255,255,0.6); font-size:14px; margin-bottom:4px;">Klik atau drag file di sini</div>
-            <div style="color:rgba(255,255,255,0.3); font-size:12px;">Gambar & Video • Maks 100MB</div>
-            <input type="file" id="upFileInput" style="display:none" accept="image/*,video/*">
-        </div>
-        <div id="upProgress" style="display:none; margin-top:12px;">
-            <div style="background:rgba(255,255,255,0.05); border-radius:50px; height:6px; overflow:hidden;">
-                <div id="upProgressBar" style="height:100%; background:linear-gradient(90deg,#667eea,#764ba2); width:0%; transition:width 0.3s ease; border-radius:50px;"></div>
-            </div>
-            <div id="upProgressText" style="font-size:12px; color:rgba(255,255,255,0.4); margin-top:6px; text-align:center;">Mengupload...</div>
-        </div>
-        <div id="upError" style="display:none; color:#ef4444; font-size:13px; margin-top:10px; padding:10px 16px; background:rgba(239,68,68,0.1); border-radius:8px;"></div>
+            {% endfor %}
+        {% else %}
+            <div style="padding:40px; text-align:center; color:rgba(255,255,255,0.3);">Belum ada order</div>
+        {% endif %}
     </div>
 </div>
 
+<div id="filesSection">
 <!-- Toolbar -->
 <div class="toolbar">
     <input type="text" class="search-input" id="searchInput" placeholder="🔍  Cari file..." oninput="filterFiles()">
@@ -528,6 +562,18 @@
             <label class="label">Kata Sandi (kosongkan untuk hapus)</label>
             <input type="text" id="editPassword" class="input-field" placeholder="Kosongkan = publik">
         </div>
+        <div class="form-group">
+            <label class="label">Tipe Akses</label>
+            <select id="editAccessType" class="input-field" onchange="togglePriceField()">
+                <option value="free">🆓 Gratis</option>
+                <option value="paid">💳 Berbayar (per video)</option>
+                <option value="premium">⭐ Premium (langganan)</option>
+            </select>
+        </div>
+        <div class="form-group" id="priceField" style="display:none;">
+            <label class="label">Harga (Rupiah)</label>
+            <input type="number" id="editPrice" class="input-field" placeholder="10000" min="1000">
+        </div>
         <div class="modal-actions">
             <button class="btn-sm btn-sm-cancel" onclick="closeModal('editModal')">Batal</button>
             <button class="btn-sm btn-sm-primary" onclick="saveEdit()">Simpan</button>
@@ -549,6 +595,8 @@
         </div>
     </div>
 </div>
+
+</div><!-- end filesSection -->
 
 <!-- Toast -->
 <div id="toast" style="
@@ -577,12 +625,20 @@
         window.open('/' + fileId, '_blank');
     }
 
-    function editFile(fileId, title, description, password) {
+    function editFile(fileId, title, description, password, accessType, price) {
         document.getElementById('editFileId').value = fileId;
         document.getElementById('editTitle').value = title;
         document.getElementById('editDescription').value = description;
         document.getElementById('editPassword').value = password;
+        document.getElementById('editAccessType').value = accessType || 'free';
+        document.getElementById('editPrice').value = price || 10000;
+        togglePriceField();
         document.getElementById('editModal').classList.add('active');
+    }
+
+    function togglePriceField() {
+        const at = document.getElementById('editAccessType').value;
+        document.getElementById('priceField').style.display = at === 'paid' ? 'block' : 'none';
     }
 
     function confirmDelete(fileId, title) {
@@ -601,10 +657,12 @@
         const description = document.getElementById('editDescription').value.trim();
         const password = document.getElementById('editPassword').value.trim();
 
+        const accessType = document.getElementById('editAccessType').value;
+        const price = document.getElementById('editPrice').value || 10000;
         const res = await fetch('/admin-api/edit', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ file_id: fileId, title, description, password, token: ADMIN_TOKEN })
+            body: JSON.stringify({ file_id: fileId, title, description, password, access_type: accessType, price: parseInt(price), token: ADMIN_TOKEN })
         });
         const data = await res.json();
 
@@ -652,6 +710,32 @@
         }
     }
 
+    async function confirmOrder(orderId, action) {
+        const res = await fetch('/admin-api/confirm-order', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ order_id: orderId, action, token: ADMIN_TOKEN })
+        });
+        const data = await res.json();
+        if (data.success) {
+            showToast(action === 'confirm' ? '✅ Pembayaran dikonfirmasi' : '❌ Order ditolak');
+            setTimeout(() => location.reload(), 800);
+        } else {
+            showToast('❌ ' + data.error, '#ef4444');
+        }
+    }
+
+    function showTab(tab) {
+        document.getElementById('filesSection').style.display = tab === 'files' ? 'block' : 'none';
+        document.getElementById('ordersSection').style.display = tab === 'orders' ? 'block' : 'none';
+        document.getElementById('tabFiles').style.background = tab === 'files' ? 'rgba(102,126,234,0.15)' : 'transparent';
+        document.getElementById('tabFiles').style.color = tab === 'files' ? '#667eea' : 'rgba(255,255,255,0.5)';
+        document.getElementById('tabFiles').style.borderColor = tab === 'files' ? 'rgba(102,126,234,0.3)' : 'rgba(255,255,255,0.1)';
+        document.getElementById('tabOrders').style.background = tab === 'orders' ? 'rgba(102,126,234,0.15)' : 'transparent';
+        document.getElementById('tabOrders').style.color = tab === 'orders' ? '#667eea' : 'rgba(255,255,255,0.5)';
+        document.getElementById('tabOrders').style.borderColor = tab === 'orders' ? 'rgba(102,126,234,0.3)' : 'rgba(255,255,255,0.1)';
+    }
+
     function filterFiles() {
         const search = document.getElementById('searchInput').value.toLowerCase();
         const type = document.getElementById('filterType').value;
@@ -664,121 +748,6 @@
             const matchStatus = status === 'all' || row.dataset.status === status;
             row.style.display = (matchSearch && matchType && matchStatus) ? '' : 'none';
         });
-    }
-
-
-    // ===== UPLOAD =====
-    const upFileInput = document.getElementById('upFileInput');
-    const upDropZone = document.getElementById('upDropZone');
-
-    upDropZone.addEventListener('dragover', e => { e.preventDefault(); upDropZone.style.borderColor='#667eea'; });
-    upDropZone.addEventListener('dragleave', () => { upDropZone.style.borderColor='rgba(255,255,255,0.15)'; });
-    upDropZone.addEventListener('drop', e => {
-        e.preventDefault();
-        upDropZone.style.borderColor='rgba(255,255,255,0.15)';
-        if (e.dataTransfer.files.length > 0) handleUpload(e.dataTransfer.files[0]);
-    });
-    upFileInput.addEventListener('change', e => {
-        if (e.target.files.length > 0) handleUpload(e.target.files[0]);
-    });
-
-    async function handleUpload(file) {
-        const maxSize = 100 * 1024 * 1024;
-        if (file.size > maxSize) { showUpError('File terlalu besar. Maksimal 100MB.'); return; }
-        const validTypes = ['image/', 'video/'];
-        if (!validTypes.some(t => file.type.startsWith(t))) { showUpError('Tipe file tidak valid.'); return; }
-
-        document.getElementById('upError').style.display = 'none';
-        document.getElementById('upProgress').style.display = 'block';
-        setProgress(0, 'Meminta signature...');
-
-        try {
-            // Step 1: Get signature
-            const signRes = await fetch('/sign-upload', { method: 'POST' });
-            const signData = await signRes.json();
-            if (!signData.success) throw new Error(signData.error);
-
-            setProgress(10, 'Mengupload ke Cloudinary...');
-
-            // Step 2: Upload to Cloudinary with XHR for progress
-            const formData = new FormData();
-            formData.append('file', file);
-            formData.append('public_id', signData.public_id);
-            formData.append('timestamp', signData.timestamp);
-            formData.append('api_key', signData.api_key);
-            formData.append('signature', signData.signature);
-
-            const uploadResult = await new Promise((resolve, reject) => {
-                const xhr = new XMLHttpRequest();
-                xhr.open('POST', `https://api.cloudinary.com/v1_1/${signData.cloud_name}/auto/upload`);
-                xhr.upload.onprogress = e => {
-                    if (e.lengthComputable) {
-                        const pct = Math.round(10 + (e.loaded / e.total) * 80);
-                        setProgress(pct, `Mengupload... ${pct}%`);
-                    }
-                };
-                xhr.onload = () => {
-                    const res = JSON.parse(xhr.responseText);
-                    if (res.error) reject(new Error(res.error.message));
-                    else resolve(res);
-                };
-                xhr.onerror = () => reject(new Error('Upload gagal'));
-                xhr.send(formData);
-            });
-
-            setProgress(95, 'Menyimpan data...');
-
-            // Step 3: Save metadata
-            const title = document.getElementById('upTitle').value.trim();
-            const description = document.getElementById('upDescription').value.trim();
-            const password = document.getElementById('upPassword').value.trim();
-
-            const saveRes = await fetch('/save-upload', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    file_id: signData.file_id,
-                    secure_url: uploadResult.secure_url,
-                    public_id: uploadResult.public_id,
-                    format: uploadResult.format,
-                    resource_type: uploadResult.resource_type,
-                    bytes: uploadResult.bytes,
-                    original_filename: file.name,
-                    width: uploadResult.width,
-                    height: uploadResult.height,
-                    duration: uploadResult.duration,
-                    title, description, password,
-                })
-            });
-            const saveData = await saveRes.json();
-            if (!saveData.success) throw new Error(saveData.error);
-
-            setProgress(100, 'Selesai!');
-            showToast('✅ Upload berhasil!');
-            document.getElementById('upTitle').value = '';
-            document.getElementById('upDescription').value = '';
-            document.getElementById('upPassword').value = '';
-            upFileInput.value = '';
-            setTimeout(() => {
-                document.getElementById('upProgress').style.display = 'none';
-                location.reload();
-            }, 1000);
-
-        } catch (err) {
-            document.getElementById('upProgress').style.display = 'none';
-            showUpError('Upload gagal: ' + err.message);
-        }
-    }
-
-    function setProgress(pct, text) {
-        document.getElementById('upProgressBar').style.width = pct + '%';
-        document.getElementById('upProgressText').textContent = text;
-    }
-
-    function showUpError(msg) {
-        const el = document.getElementById('upError');
-        el.textContent = msg;
-        el.style.display = 'block';
     }
 
     // Close modal on overlay click

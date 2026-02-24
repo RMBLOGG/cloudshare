@@ -1,0 +1,482 @@
+{% extends "base.html" %}
+
+{% block title %}Konten Berbayar - {{ file_data.title }}{% endblock %}
+{% block container_width %}600px{% endblock %}
+{% block header_margin %}40px{% endblock %}
+
+{% block extra_css %}
+.paywall-card {
+    background: rgba(255,255,255,0.03);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 20px;
+    overflow: hidden;
+    animation: fadeInUp 0.6s ease;
+}
+.paywall-thumb {
+    width: 100%;
+    aspect-ratio: 16/9;
+    background: linear-gradient(135deg, rgba(102,126,234,0.2), rgba(118,75,162,0.2));
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 64px;
+    position: relative;
+    overflow: hidden;
+}
+.paywall-thumb::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    backdrop-filter: blur(2px);
+    background: rgba(0,0,0,0.4);
+}
+.lock-overlay {
+    position: absolute;
+    z-index: 2;
+    text-align: center;
+}
+.lock-icon { font-size: 48px; margin-bottom: 8px; }
+.lock-text { font-size: 14px; color: rgba(255,255,255,0.7); font-weight: 600; }
+.paywall-body { padding: 28px; }
+.paywall-title { font-size: 22px; font-weight: 700; margin-bottom: 6px; }
+.paywall-desc { font-size: 14px; color: rgba(255,255,255,0.4); margin-bottom: 24px; }
+
+.tab-switch {
+    display: flex;
+    background: rgba(255,255,255,0.04);
+    border-radius: 12px;
+    padding: 4px;
+    margin-bottom: 24px;
+    gap: 4px;
+}
+.tab-btn {
+    flex: 1;
+    padding: 10px;
+    border: none;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    font-family: 'Space Grotesk', sans-serif;
+    transition: all 0.2s ease;
+    color: rgba(255,255,255,0.5);
+    background: transparent;
+}
+.tab-btn.active {
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    color: #fff;
+}
+
+.price-box {
+    background: rgba(102,126,234,0.08);
+    border: 1px solid rgba(102,126,234,0.2);
+    border-radius: 12px;
+    padding: 16px 20px;
+    margin-bottom: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+.price-amount {
+    font-size: 24px;
+    font-weight: 700;
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+.price-desc { font-size: 12px; color: rgba(255,255,255,0.4); margin-top: 2px; }
+
+.payment-methods {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 20px;
+}
+.pm-btn {
+    flex: 1;
+    padding: 12px 8px;
+    border: 2px solid rgba(255,255,255,0.1);
+    border-radius: 10px;
+    background: rgba(255,255,255,0.03);
+    color: rgba(255,255,255,0.6);
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    font-family: 'Space Grotesk', sans-serif;
+    transition: all 0.2s;
+    text-align: center;
+}
+.pm-btn.selected {
+    border-color: #667eea;
+    background: rgba(102,126,234,0.1);
+    color: #fff;
+}
+.pm-btn:hover { border-color: rgba(102,126,234,0.5); }
+
+.payment-number-box {
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 10px;
+    padding: 14px 18px;
+    margin-bottom: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+.payment-number { font-size: 20px; font-weight: 700; letter-spacing: 2px; }
+.copy-number-btn {
+    padding: 8px 16px;
+    background: rgba(102,126,234,0.2);
+    border: none;
+    border-radius: 8px;
+    color: #667eea;
+    font-weight: 600;
+    cursor: pointer;
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 13px;
+    transition: all 0.2s;
+}
+.copy-number-btn:hover { background: rgba(102,126,234,0.3); }
+
+.step-list {
+    list-style: none;
+    margin-bottom: 24px;
+}
+.step-list li {
+    display: flex;
+    gap: 12px;
+    padding: 8px 0;
+    font-size: 14px;
+    color: rgba(255,255,255,0.6);
+    border-bottom: 1px solid rgba(255,255,255,0.05);
+}
+.step-list li:last-child { border-bottom: none; }
+.step-num {
+    width: 24px;
+    height: 24px;
+    min-width: 24px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    font-weight: 700;
+    color: #fff;
+}
+
+/* Upload proof */
+.proof-section { display: none; }
+.proof-section.active { display: block; }
+.proof-upload-area {
+    border: 2px dashed rgba(255,255,255,0.15);
+    border-radius: 12px;
+    padding: 24px;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.3s;
+    margin-bottom: 16px;
+}
+.proof-upload-area:hover { border-color: rgba(102,126,234,0.4); }
+.proof-preview { max-width: 100%; border-radius: 8px; margin-top: 10px; display: none; }
+
+/* Check access */
+.check-section {
+    margin-top: 20px;
+    padding-top: 20px;
+    border-top: 1px solid rgba(255,255,255,0.08);
+    text-align: center;
+}
+.check-text { font-size: 13px; color: rgba(255,255,255,0.4); margin-bottom: 12px; }
+
+.step-panel { display: none; }
+.step-panel.active { display: block; }
+{% endblock %}
+
+{% block content %}
+<div class="paywall-card">
+    <!-- Thumbnail blur -->
+    <div class="paywall-thumb">
+        {% if file_data.resource_type == 'image' %}
+            <img src="{{ file_data.cloudinary_url }}" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;filter:blur(8px);transform:scale(1.1)">
+        {% else %}
+            🎬
+        {% endif %}
+        <div class="lock-overlay">
+            <div class="lock-icon">🔒</div>
+            <div class="lock-text">Konten Berbayar</div>
+        </div>
+    </div>
+
+    <div class="paywall-body">
+        <div class="paywall-title">{{ file_data.title }}</div>
+        <div class="paywall-desc">
+            {% if access_type == 'premium' %}Konten ini hanya untuk pelanggan Premium{% else %}Beli konten ini untuk mendapatkan akses{% endif %}
+        </div>
+
+        <!-- Tab: Beli Video / Langganan -->
+        {% if access_type == 'paid' %}
+        <div class="tab-switch" id="tabSwitch">
+            <button class="tab-btn active" onclick="switchTab('video')">🎬 Beli Video — Rp {{ "{:,.0f}".format(price).replace(",", ".") }}</button>
+            <button class="tab-btn" onclick="switchTab('subscription')">⭐ Langganan — Rp {{ "{:,.0f}".format(subscription_price).replace(",", ".") }}/bln</button>
+        </div>
+        {% endif %}
+
+        <!-- Step 1: Isi data -->
+        <div class="step-panel active" id="step1">
+            <div class="price-box">
+                <div>
+                    <div class="price-amount" id="displayPrice">
+                        Rp {{ "{:,.0f}".format(price).replace(",", ".") }}
+                    </div>
+                    <div class="price-desc" id="displayDesc">Akses selamanya untuk video ini</div>
+                </div>
+                <div style="font-size:32px">💳</div>
+            </div>
+
+            <div class="form-group">
+                <label class="label">Nama</label>
+                <input type="text" id="userName" class="input-field" placeholder="Nama kamu">
+            </div>
+            <div class="form-group">
+                <label class="label">Email</label>
+                <input type="email" id="userEmail" class="input-field" placeholder="email@kamu.com">
+            </div>
+
+            <label class="label">Pilih Metode Pembayaran</label>
+            <div class="payment-methods">
+                <button class="pm-btn selected" onclick="selectPM(this, 'dana')">DANA</button>
+                <button class="pm-btn" onclick="selectPM(this, 'ovo')">OVO</button>
+                <button class="pm-btn" onclick="selectPM(this, 'gopay')">GoPay</button>
+            </div>
+
+            <div id="errorMsg" style="display:none; color:#ef4444; font-size:13px; margin-bottom:16px; padding:10px 16px; background:rgba(239,68,68,0.1); border-radius:8px;"></div>
+
+            <button class="btn btn-primary" style="width:100%" onclick="submitOrder()">Lanjut ke Pembayaran →</button>
+        </div>
+
+        <!-- Step 2: Bayar & Upload bukti -->
+        <div class="step-panel" id="step2">
+            <ul class="step-list">
+                <li><div class="step-num">1</div><span>Transfer tepat <strong id="amountDisplay"></strong> ke nomor berikut:</span></li>
+            </ul>
+
+            <div class="payment-number-box">
+                <div>
+                    <div style="font-size:11px; color:rgba(255,255,255,0.4); margin-bottom:4px;" id="pmLabel">DANA</div>
+                    <div class="payment-number">{{ payment_number }}</div>
+                </div>
+                <button class="copy-number-btn" onclick="copyNumber()">Salin</button>
+            </div>
+
+            <ul class="step-list">
+                <li><div class="step-num">2</div><span>Setelah transfer, upload foto bukti pembayaran</span></li>
+            </ul>
+
+            <div class="proof-upload-area" onclick="document.getElementById('proofInput').click()">
+                <div style="font-size:32px; margin-bottom:8px;">📸</div>
+                <div style="font-size:14px; color:rgba(255,255,255,0.5);">Klik untuk upload bukti transfer</div>
+                <img id="proofPreview" class="proof-preview">
+            </div>
+            <input type="file" id="proofInput" accept="image/*" style="display:none">
+
+            <div id="uploadingProof" style="display:none; text-align:center; color:rgba(255,255,255,0.5); font-size:14px; margin-bottom:16px;">Mengupload bukti...</div>
+            <div id="proofError" style="display:none; color:#ef4444; font-size:13px; margin-bottom:16px;"></div>
+
+            <button class="btn btn-primary" style="width:100%; opacity:0.4; cursor:not-allowed;" id="doneBtn" disabled onclick="orderDone()">
+                Bukti Sudah Diupload ✓
+            </button>
+        </div>
+
+        <!-- Step 3: Menunggu konfirmasi -->
+        <div class="step-panel" id="step3" style="text-align:center; padding:20px 0;">
+            <div style="font-size:56px; margin-bottom:16px;">⏳</div>
+            <div style="font-size:20px; font-weight:700; margin-bottom:8px;">Menunggu Konfirmasi</div>
+            <div style="font-size:14px; color:rgba(255,255,255,0.4); margin-bottom:24px;">
+                Admin akan mengkonfirmasi pembayaran kamu. Biasanya dalam 1x24 jam.<br>
+                Order ID: <strong id="displayOrderId" style="color:#667eea;"></strong>
+            </div>
+            <button class="btn btn-primary" style="width:100%" onclick="checkMyAccess()">🔍 Cek Akses Sekarang</button>
+            <div id="checkResult" style="margin-top:12px; font-size:13px;"></div>
+        </div>
+
+        <!-- Sudah bayar? Cek akses -->
+        <div class="check-section" id="checkSection">
+            <div class="check-text">Sudah bayar sebelumnya?</div>
+            <div style="display:flex; gap:8px;">
+                <input type="email" id="checkEmail" class="input-field" placeholder="Masukkan email kamu" style="padding:12px 16px; font-size:14px;">
+                <button style="padding:12px 20px; background:rgba(102,126,234,0.2); border:1px solid rgba(102,126,234,0.3); color:#667eea; border-radius:12px; cursor:pointer; font-weight:600; white-space:nowrap; font-family:'Space Grotesk',sans-serif;" onclick="quickCheck()">Cek</button>
+            </div>
+            <div id="quickCheckResult" style="margin-top:10px; font-size:13px;"></div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+{{ super() }}
+<script>
+    const FILE_ID = "{{ file_id }}";
+    const VIDEO_PRICE = {{ price }};
+    const SUB_PRICE = {{ subscription_price }};
+    const PAYMENT_NUMBER = "{{ payment_number }}";
+
+    let currentTab = 'video';
+    let currentPM = 'dana';
+    let currentOrderId = null;
+
+    function switchTab(tab) {
+        currentTab = tab;
+        document.querySelectorAll('.tab-btn').forEach((b, i) => {
+            b.classList.toggle('active', (i === 0 && tab === 'video') || (i === 1 && tab === 'subscription'));
+        });
+        const price = tab === 'video' ? VIDEO_PRICE : SUB_PRICE;
+        document.getElementById('displayPrice').textContent = 'Rp ' + price.toLocaleString('id-ID');
+        document.getElementById('displayDesc').textContent = tab === 'video' ? 'Akses selamanya untuk video ini' : 'Akses semua konten premium selama 30 hari';
+    }
+
+    function selectPM(btn, pm) {
+        currentPM = pm;
+        document.querySelectorAll('.pm-btn').forEach(b => b.classList.remove('selected'));
+        btn.classList.add('selected');
+    }
+
+    function showError(msg) {
+        const el = document.getElementById('errorMsg');
+        el.textContent = msg;
+        el.style.display = 'block';
+    }
+
+    async function submitOrder() {
+        const email = document.getElementById('userEmail').value.trim();
+        const name = document.getElementById('userName').value.trim();
+        if (!email) { showError('Email wajib diisi'); return; }
+        if (!email.includes('@')) { showError('Format email tidak valid'); return; }
+
+        document.getElementById('errorMsg').style.display = 'none';
+
+        try {
+            const res = await fetch('/order', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    email, name,
+                    type: currentTab,
+                    file_id: FILE_ID,
+                    payment_method: currentPM,
+                })
+            });
+            const data = await res.json();
+            if (!data.success) { showError(data.error || 'Gagal membuat order'); return; }
+
+            currentOrderId = data.order_id;
+            document.getElementById('amountDisplay').textContent = 'Rp ' + data.amount.toLocaleString('id-ID');
+            document.getElementById('pmLabel').textContent = currentPM.toUpperCase();
+            document.getElementById('displayOrderId').textContent = data.order_id;
+
+            switchStep('step2');
+            document.getElementById('checkSection').style.display = 'none';
+        } catch(e) {
+            showError('Terjadi kesalahan, coba lagi');
+        }
+    }
+
+    // Upload bukti transfer
+    document.getElementById('proofInput').addEventListener('change', async (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+
+        // Preview
+        const reader = new FileReader();
+        reader.onload = ev => {
+            const preview = document.getElementById('proofPreview');
+            preview.src = ev.target.result;
+            preview.style.display = 'block';
+        };
+        reader.readAsDataURL(file);
+
+        // Upload
+        document.getElementById('uploadingProof').style.display = 'block';
+        document.getElementById('proofError').style.display = 'none';
+
+        const formData = new FormData();
+        formData.append('proof', file);
+        formData.append('order_id', currentOrderId);
+
+        try {
+            const res = await fetch('/upload-proof', { method: 'POST', body: formData });
+            const data = await res.json();
+            document.getElementById('uploadingProof').style.display = 'none';
+
+            if (data.success) {
+                const btn = document.getElementById('doneBtn');
+                btn.disabled = false;
+                btn.style.opacity = '1';
+                btn.style.cursor = 'pointer';
+            } else {
+                document.getElementById('proofError').textContent = data.error;
+                document.getElementById('proofError').style.display = 'block';
+            }
+        } catch(e) {
+            document.getElementById('uploadingProof').style.display = 'none';
+            document.getElementById('proofError').textContent = 'Gagal upload, coba lagi';
+            document.getElementById('proofError').style.display = 'block';
+        }
+    });
+
+    function orderDone() {
+        switchStep('step3');
+    }
+
+    async function checkMyAccess() {
+        const email = document.querySelector('#step1 #userEmail')?.value ||
+                      document.getElementById('checkEmail')?.value || '';
+        const res = await fetch('/check-access', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email, file_id: FILE_ID })
+        });
+        const data = await res.json();
+        const el = document.getElementById('checkResult');
+        if (data.success) {
+            el.innerHTML = '<span style="color:#10b981">✅ Akses dikonfirmasi! Mengalihkan...</span>';
+            setTimeout(() => window.location.href = data.redirect, 1000);
+        } else {
+            el.innerHTML = '<span style="color:#f59e0b">⏳ ' + (data.message || 'Belum dikonfirmasi') + '</span>';
+        }
+    }
+
+    async function quickCheck() {
+        const email = document.getElementById('checkEmail').value.trim();
+        if (!email) return;
+        const res = await fetch('/check-access', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email, file_id: FILE_ID })
+        });
+        const data = await res.json();
+        const el = document.getElementById('quickCheckResult');
+        if (data.success) {
+            el.innerHTML = '<span style="color:#10b981">✅ Kamu punya akses! Mengalihkan...</span>';
+            setTimeout(() => window.location.href = data.redirect, 1000);
+        } else {
+            el.innerHTML = '<span style="color:rgba(255,255,255,0.4)">Akses belum ditemukan untuk email ini</span>';
+        }
+    }
+
+    function copyNumber() {
+        navigator.clipboard.writeText(PAYMENT_NUMBER);
+        const btn = event.target;
+        btn.textContent = '✓ Tersalin!';
+        setTimeout(() => btn.textContent = 'Salin', 2000);
+    }
+
+    function switchStep(stepId) {
+        document.querySelectorAll('.step-panel').forEach(p => p.classList.remove('active'));
+        document.getElementById(stepId).classList.add('active');
+        if (stepId !== 'step1') {
+            document.getElementById('tabSwitch')?.style.setProperty('display', 'none');
+        }
+    }
+</script>
+{% endblock %}
