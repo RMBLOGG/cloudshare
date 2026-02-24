@@ -524,7 +524,7 @@
             {% if file_data.resource_type == 'image' %}
                 <img src="{{ file_data.cloudinary_url }}" alt="{{ file_data.title }}" loading="lazy">
             {% elif file_data.resource_type == 'video' %}
-                <video src="{{ file_data.cloudinary_url }}" muted preload="none"
+                <video src="{{ file_data.cloudinary_url }}" muted preload="metadata"
                        onmouseenter="this.play()" onmouseleave="this.pause();this.currentTime=0;"></video>
                 <div class="play-overlay"><div class="play-icon">▶</div></div>
                 {% if file_data.duration %}
