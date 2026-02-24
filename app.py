@@ -2,27 +2,35 @@ from flask import Flask, render_template, request, jsonify, redirect, session
 import cloudinary
 import cloudinary.uploader
 import cloudinary.api
+from supabase import create_client, Client
 from datetime import datetime
 import random
 import string
-from functools import wraps
+import os
 
 app = Flask(__name__)
-app.secret_key = 'your-secret-key-change-this-in-production'  # Change this!
+app.secret_key = os.environ.get('SECRET_KEY', 'your-secret-key-change-this-in-production')
 
 # Cloudinary Configuration
 cloudinary.config(
-    cloud_name="dzfkklsza",
-    api_key="588474134734416",
-    api_secret="9c12YJe5rZSYSg7zROQuvmVZ7mg"
+    cloud_name=os.environ.get('CLOUDINARY_CLOUD_NAME', 'dzfkklsza'),
+    api_key=os.environ.get('CLOUDINARY_API_KEY', '588474134734416'),
+    api_secret=os.environ.get('CLOUDINARY_API_SECRET', '9c12YJe5rZSYSg7zROQuvmVZ7mg')
 )
 
-# Simple in-memory database (untuk production gunakan database real)
-uploads_db = {}
+# Supabase Configuration
+SUPABASE_URL = os.environ.get('SUPABASE_URL')
+SUPABASE_KEY = os.environ.get('SUPABASE_KEY')
+supabase: Client = create_client(SUPABASE_URL, SUPABASE_KEY)
 
 # Generate random ID for uploads
 def generate_id():
     return ''.join(random.choices(string.ascii_lowercase + string.digits, k=8))
+
+# Helper: get file by file_id
+def get_file(file_id):
+    result = supabase.table('cloudshare').select('*').eq('file_id', file_id).execute()
+    return result.data[0] if result.data else None
 
 @app.route('/')
 def index():
@@ -30,24 +38,19 @@ def index():
 
 @app.route('/gallery')
 def gallery():
-    # Sort by upload date, newest first
-    sorted_files = sorted(
-        uploads_db.items(), 
-        key=lambda x: x[1]['uploaded_at'], 
-        reverse=True
-    )
-    return render_template('gallery.html', files=sorted_files)
+    result = supabase.table('cloudshare').select('*').order('uploaded_at', desc=True).execute()
+    files = [(row['file_id'], row) for row in result.data]
+    return render_template('gallery.html', files=files)
 
 @app.route('/<file_id>')
 def view_file(file_id):
-    if file_id not in uploads_db:
-        return render_template('error.html', error="File not found"), 404
+    file_data = get_file(file_id)
     
-    file_data = uploads_db[file_id]
+    if not file_data:
+        return render_template('error.html', error="File not found"), 404
     
     # Check if password protected
     if file_data.get('password'):
-        # Check if already authenticated in session
         if not session.get(f'auth_{file_id}'):
             return render_template('password.html', file_id=file_id)
     
@@ -55,10 +58,11 @@ def view_file(file_id):
 
 @app.route('/<file_id>/verify', methods=['POST'])
 def verify_password(file_id):
-    if file_id not in uploads_db:
+    file_data = get_file(file_id)
+    
+    if not file_data:
         return jsonify({'success': False, 'error': 'File not found'})
     
-    file_data = uploads_db[file_id]
     password = request.json.get('password', '')
     
     if file_data.get('password') == password:
@@ -78,12 +82,11 @@ def upload():
         if file.filename == '':
             return jsonify({'success': False, 'error': 'No file selected'})
         
-        # Get title, description, and password from form
         title = request.form.get('title', '').strip()
         description = request.form.get('description', '').strip()
         password = request.form.get('password', '').strip()
         
-        # Generate unique ID untuk website
+        # Generate unique ID
         file_id = generate_id()
         
         # Upload to Cloudinary
@@ -97,8 +100,9 @@ def upload():
             folder='cloudshare'
         )
         
-        # Simpan data ke database
-        uploads_db[file_id] = {
+        # Simpan ke Supabase
+        row = {
+            'file_id': file_id,
             'cloudinary_url': upload_result['secure_url'],
             'public_id': upload_result['public_id'],
             'format': upload_result['format'],
@@ -110,11 +114,12 @@ def upload():
             'height': upload_result.get('height'),
             'duration': upload_result.get('duration'),
             'title': title if title else file.filename,
-            'description': description,
-            'password': password if password else None
+            'description': description if description else None,
+            'password': password if password else None,
         }
+        supabase.table('cloudshare').insert(row).execute()
         
-        # Return URL website, bukan Cloudinary
+        # Return share URL
         base_url = request.host_url.rstrip('/')
         share_url = f"{base_url}/{file_id}"
         
