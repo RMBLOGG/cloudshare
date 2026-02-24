@@ -1,389 +1,290 @@
 {% extends "base.html" %}
 
-{% block title %}CloudShare - Upload & Bagikan File{% endblock %}
+{% block title %}CloudShare - Berbagi File{% endblock %}
 
-{% block container_width %}800px{% endblock %}
-{% block header_margin %}80px{% endblock %}
-{% block logo_size %}72px{% endblock %}
+{% block container_width %}1400px{% endblock %}
 
 {% block extra_css %}
-.drop-zone {
-    border: 2px dashed rgba(255, 255, 255, 0.2);
-    border-radius: 16px;
-    padding: 80px 40px;
+.gallery-header {
     text-align: center;
+    margin-bottom: 50px;
+    animation: fadeInDown 0.8s ease;
+}
+
+.gallery-title {
+    font-size: 48px;
+    font-weight: 700;
+    margin-bottom: 12px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+.gallery-subtitle {
+    font-size: 15px;
+    color: rgba(255, 255, 255, 0.5);
+    font-weight: 400;
+}
+
+.gallery-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 24px;
+    animation: fadeInUp 0.8s ease 0.2s backwards;
+}
+
+.gallery-item {
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 16px;
+    overflow: hidden;
+    transition: all 0.3s ease;
     cursor: pointer;
-    transition: all 0.4s ease;
-    background: rgba(255, 255, 255, 0.02);
-    backdrop-filter: blur(10px);
+    position: relative;
+}
+
+.gallery-item::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: 16px;
+    padding: 1px;
+    background: linear-gradient(135deg, rgba(102, 126, 234, 0.3), rgba(118, 75, 162, 0.3));
+    -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+    mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.gallery-item:hover {
+    transform: translateY(-4px);
+    background: rgba(255, 255, 255, 0.06);
+    box-shadow: 0 12px 32px rgba(102, 126, 234, 0.15);
+}
+
+.gallery-item:hover::before {
+    opacity: 1;
+}
+
+.gallery-thumbnail {
+    width: 100%;
+    aspect-ratio: 16 / 9;
+    background: linear-gradient(135deg, rgba(20, 20, 30, 0.8), rgba(30, 30, 40, 0.8));
     position: relative;
     overflow: hidden;
 }
 
-.drop-zone::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: -100%;
+.gallery-thumbnail img,
+.gallery-thumbnail video {
     width: 100%;
     height: 100%;
-    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
-    transition: left 0.5s ease;
+    object-fit: cover;
+    transition: transform 0.4s ease;
 }
 
-.drop-zone:hover::before {
-    left: 100%;
+.gallery-item:hover .gallery-thumbnail img,
+.gallery-item:hover .gallery-thumbnail video {
+    transform: scale(1.05);
 }
 
-.drop-zone:hover {
-    border-color: rgba(102, 126, 234, 0.5);
-    background: rgba(102, 126, 234, 0.05);
-    transform: translateY(-2px);
+.gallery-thumbnail::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: 50%;
+    background: linear-gradient(to bottom, transparent, rgba(0,0,0,0.6));
+    pointer-events: none;
 }
 
-.drop-zone.dragover {
-    border-color: #667eea;
-    background: rgba(102, 126, 234, 0.1);
-    transform: scale(1.02);
+.gallery-lock {
+    position: absolute;
+    top: 14px;
+    right: 14px;
+    width: 36px;
+    height: 36px;
+    background: rgba(0, 0, 0, 0.6);
+    backdrop-filter: blur(10px);
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+    z-index: 10;
+    border: 1px solid rgba(255, 255, 255, 0.1);
 }
 
-.upload-icon {
-    font-size: 64px;
-    margin-bottom: 20px;
-    display: block;
-    filter: drop-shadow(0 0 20px rgba(102, 126, 234, 0.3));
+.gallery-info {
+    padding: 20px;
 }
 
-.upload-text {
-    font-size: 24px;
+.gallery-item-title {
+    font-size: 17px;
     font-weight: 600;
+    color: #fff;
     margin-bottom: 10px;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
 }
 
-.upload-subtext {
-    font-size: 14px;
+.gallery-item-meta {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 13px;
     color: rgba(255, 255, 255, 0.4);
-    margin-bottom: 25px;
 }
 
-.file-input {
-    display: none;
+.gallery-item-size {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    font-weight: 500;
 }
 
-.upload-section {
-    animation: fadeInUp 0.8s ease 0.2s backwards;
+.gallery-item-format {
+    padding: 5px 10px;
+    background: rgba(102, 126, 234, 0.15);
+    border-radius: 6px;
+    font-weight: 600;
+    color: rgba(102, 126, 234, 0.9);
+    text-transform: uppercase;
+    font-size: 11px;
+    letter-spacing: 0.5px;
 }
 
-.result {
-    display: none;
+.gallery-empty {
     text-align: center;
+    padding: 100px 20px;
     animation: fadeInUp 0.8s ease;
 }
 
-.success-icon {
-    font-size: 96px;
-    margin-bottom: 30px;
-    filter: drop-shadow(0 0 30px rgba(16, 185, 129, 0.5));
+.empty-icon {
+    font-size: 80px;
+    margin-bottom: 25px;
+    opacity: 0.3;
 }
 
-.result-title {
-    font-size: 36px;
+.empty-title {
+    font-size: 28px;
     font-weight: 700;
-    margin-bottom: 15px;
-    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
+    margin-bottom: 12px;
+    color: rgba(255, 255, 255, 0.6);
 }
 
-.result-subtitle {
-    font-size: 16px;
-    color: rgba(255, 255, 255, 0.5);
-    margin-bottom: 50px;
-}
-
-.file-info {
-    text-align: left;
-    font-size: 14px;
+.empty-text {
+    font-size: 15px;
     color: rgba(255, 255, 255, 0.4);
-    line-height: 1.8;
-    margin-top: 30px;
+    margin-bottom: 35px;
 }
 
-.file-info strong {
-    color: rgba(255, 255, 255, 0.7);
+@media (max-width: 1200px) {
+    .gallery-grid {
+        gap: 20px;
+    }
 }
 
-.upload-another {
-    padding: 16px 48px;
-    background: transparent;
-    border: 2px solid rgba(102, 126, 234, 0.3);
-    color: #667eea;
-    border-radius: 50px;
-    font-size: 16px;
-    font-weight: 600;
-    cursor: pointer;
-    transition: all 0.3s ease;
-    font-family: 'Space Grotesk', sans-serif;
-    text-transform: uppercase;
-    letter-spacing: 1px;
+@media (max-width: 768px) {
+    .gallery-grid {
+        gap: 16px;
+    }
+    
+    .gallery-title {
+        font-size: 36px;
+    }
+    
+    .gallery-subtitle {
+        font-size: 14px;
+    }
+    
+    .gallery-info {
+        padding: 16px;
+    }
+    
+    .gallery-item-title {
+        font-size: 16px;
+    }
+    
+    .gallery-item-meta {
+        font-size: 12px;
+    }
+    
+    .gallery-lock {
+        width: 32px;
+        height: 32px;
+        font-size: 16px;
+    }
 }
 
-.upload-another:hover {
-    background: rgba(102, 126, 234, 0.1);
-    border-color: #667eea;
-    transform: translateY(-2px);
-}
-
-@media (max-width: 600px) {
-    .drop-zone {
-        padding: 60px 20px;
+@media (max-width: 480px) {
+    .gallery-grid {
+        gap: 12px;
+    }
+    
+    .gallery-info {
+        padding: 14px;
+    }
+    
+    .gallery-item-title {
+        font-size: 15px;
+    }
+    
+    .gallery-item-meta {
+        font-size: 11px;
+    }
+    
+    .gallery-item-format {
+        font-size: 10px;
+        padding: 4px 8px;
     }
 }
 {% endblock %}
 
 {% block content %}
-<div id="uploadSection">
-    <form id="uploadForm" class="upload-section">
-        <div class="form-group">
-            <label class="label">Judul</label>
-            <input 
-                type="text" 
-                name="title" 
-                class="input-field" 
-                placeholder="Beri judul untuk file Anda"
-                maxlength="100"
-            >
-        </div>
-        
-        <div class="form-group">
-            <label class="label">Deskripsi (Opsional)</label>
-            <textarea 
-                name="description" 
-                class="input-field" 
-                placeholder="Tambahkan deskripsi atau sertakan link..."
-                maxlength="500"
-            ></textarea>
-        </div>
-        
-        <div class="form-group">
-            <label class="label">Kata Sandi (Opsional)</label>
-            <input 
-                type="password" 
-                name="password" 
-                class="input-field" 
-                placeholder="Lindungi file Anda dengan kata sandi"
-                maxlength="50"
-            >
-            <div style="font-size: 12px; color: rgba(255, 255, 255, 0.4); margin-top: 8px;">
-                Kosongkan untuk akses publik
-            </div>
-        </div>
-        
-        <div class="form-group">
-            <label class="label">File</label>
-            <div class="drop-zone" id="dropZone">
-                <span class="upload-icon">⚡</span>
-                <div class="upload-text">Taruh file Anda di sini</div>
-                <div class="upload-subtext">atau klik untuk memilih file</div>
-                <button type="button" class="btn btn-primary" onclick="document.getElementById('fileInput').click()">
-                    Pilih File
-                </button>
-                <input type="file" id="fileInput" name="file" class="file-input" accept="image/*,video/*">
-                <div class="upload-subtext" style="margin-top: 20px; font-size: 12px;">
-                    Gambar & Video • Maks 100MB
-                </div>
-            </div>
-        </div>
-    </form>
-    
-    <div class="loading" id="loading">
-        <div class="spinner"></div>
-        <div class="loading-text">Mengupload ke cloud...</div>
-    </div>
-    
-    <div class="error" id="error"></div>
+<div class="gallery-header">
+    <div class="gallery-title">CLOUDSHARE</div>
+    <div class="gallery-subtitle">Masa Depan Berbagi File</div>
 </div>
 
-<div class="result" id="result">
-    <div class="success-icon">✨</div>
-    <div class="result-title">Upload Berhasil</div>
-    <div class="result-subtitle">File Anda sekarang sudah online</div>
-    
-    <div class="link-wrapper">
-        <div class="link-label">Link Berbagi</div>
-        <div class="link-container">
-            <input type="text" class="link-input" id="shareLink" readonly>
-            <button class="copy-btn" onclick="copyLink()">Salin</button>
+{% if files %}
+<div class="gallery-grid">
+    {% for file_id, file_data in files %}
+    <a href="/{{ file_id }}" class="gallery-item" style="text-decoration: none;">
+        <div class="gallery-thumbnail">
+            {% if file_data.password %}
+            <div class="gallery-lock">🔒</div>
+            {% endif %}
+            
+            {% if file_data.resource_type == 'image' %}
+                <img src="{{ file_data.cloudinary_url }}" alt="{{ file_data.title }}">
+            {% elif file_data.resource_type == 'video' %}
+                <video src="{{ file_data.cloudinary_url }}" muted></video>
+            {% endif %}
         </div>
         
-        <div class="file-info" id="fileInfo"></div>
-    </div>
-    
-    <button class="upload-another" onclick="resetUpload()">
-        Upload Lagi
-    </button>
+        <div class="gallery-info">
+            <div class="gallery-item-title">{{ file_data.title }}</div>
+            <div class="gallery-item-meta">
+                <span class="gallery-item-size">
+                    💾 {{ "%.1f"|format(file_data.bytes / 1024 / 1024) }} MB
+                </span>
+                <span class="gallery-item-format">{{ file_data.format }}</span>
+            </div>
+        </div>
+    </a>
+    {% endfor %}
 </div>
-{% endblock %}
-
-{% block scripts %}
-{{ super() }}
-<script>
-    const dropZone = document.getElementById('dropZone');
-    const fileInput = document.getElementById('fileInput');
-    const uploadForm = document.getElementById('uploadForm');
-    const uploadSection = document.getElementById('uploadSection');
-    const loading = document.getElementById('loading');
-    const result = document.getElementById('result');
-    const errorDiv = document.getElementById('error');
-    const shareLink = document.getElementById('shareLink');
-    const fileInfo = document.getElementById('fileInfo');
-
-    // Drag and drop
-    dropZone.addEventListener('dragover', (e) => {
-        e.preventDefault();
-        dropZone.classList.add('dragover');
-    });
-
-    dropZone.addEventListener('dragleave', () => {
-        dropZone.classList.remove('dragover');
-    });
-
-    dropZone.addEventListener('drop', (e) => {
-        e.preventDefault();
-        dropZone.classList.remove('dragover');
-        const files = e.dataTransfer.files;
-        if (files.length > 0) {
-            fileInput.files = files;
-            handleFile(files[0]);
-        }
-    });
-
-    dropZone.addEventListener('click', (e) => {
-        if (e.target === dropZone || e.target.closest('.drop-zone')) {
-            fileInput.click();
-        }
-    });
-
-    fileInput.addEventListener('change', (e) => {
-        if (e.target.files.length > 0) {
-            handleFile(e.target.files[0]);
-        }
-    });
-
-    function handleFile(file) {
-        // Validate file
-        const maxSize = 100 * 1024 * 1024; // 100MB
-        if (file.size > maxSize) {
-            showError('File terlalu besar. Ukuran maksimal 100MB.');
-            return;
-        }
-
-        const validTypes = ['image/', 'video/'];
-        if (!validTypes.some(type => file.type.startsWith(type))) {
-            showError('Tipe file tidak valid. Silakan upload gambar atau video.');
-            return;
-        }
-
-        uploadFile(file);
-    }
-
-    async function uploadFile(file) {
-        uploadForm.style.display = 'none';
-        loading.style.display = 'block';
-        errorDiv.style.display = 'none';
-
-        try {
-            // Step 1: Minta signature dari server
-            const signRes = await fetch('/sign-upload', { method: 'POST' });
-            const signData = await signRes.json();
-            if (!signData.success) throw new Error(signData.error || 'Gagal mendapatkan signature');
-
-            // Step 2: Upload langsung ke Cloudinary dari browser (bypass Vercel)
-            const formData = new FormData();
-            formData.append('file', file);
-            formData.append('public_id', signData.public_id);
-            formData.append('timestamp', signData.timestamp);
-            formData.append('api_key', signData.api_key);
-            formData.append('signature', signData.signature);
-
-            const uploadRes = await fetch(
-                `https://api.cloudinary.com/v1_1/${signData.cloud_name}/auto/upload`,
-                { method: 'POST', body: formData }
-            );
-            const uploadResult = await uploadRes.json();
-            if (uploadResult.error) throw new Error(uploadResult.error.message);
-
-            // Step 3: Simpan metadata ke Supabase lewat server
-            const title = document.querySelector('input[name="title"]').value.trim();
-            const description = document.querySelector('textarea[name="description"]').value.trim();
-            const password = document.querySelector('input[name="password"]').value.trim();
-
-            const saveRes = await fetch('/save-upload', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    file_id: signData.file_id,
-                    secure_url: uploadResult.secure_url,
-                    public_id: uploadResult.public_id,
-                    format: uploadResult.format,
-                    resource_type: uploadResult.resource_type,
-                    bytes: uploadResult.bytes,
-                    original_filename: file.name,
-                    width: uploadResult.width,
-                    height: uploadResult.height,
-                    duration: uploadResult.duration,
-                    title: title,
-                    description: description,
-                    password: password,
-                })
-            });
-            const saveData = await saveRes.json();
-            if (!saveData.success) throw new Error(saveData.error || 'Gagal menyimpan data');
-
-            showResult(saveData);
-
-        } catch (err) {
-            showError('Upload gagal: ' + err.message);
-            console.error('Error:', err);
-        }
-    }
-
-    function showResult(data) {
-        uploadSection.style.display = 'none';
-        result.style.display = 'block';
-
-        // Set share link
-        shareLink.value = data.url;
-
-        // Show file info
-        const fileSize = (data.bytes / 1024 / 1024).toFixed(2);
-        fileInfo.innerHTML = `
-            <strong>ID File:</strong> ${data.file_id}<br>
-            <strong>Ukuran:</strong> ${fileSize} MB<br>
-            <strong>Format:</strong> ${data.format.toUpperCase()}<br>
-            <strong>Tipe:</strong> ${data.resource_type === 'image' ? 'Gambar' : 'Video'}
-        `;
-    }
-
-    function showError(message) {
-        loading.style.display = 'none';
-        uploadForm.style.display = 'block';
-        errorDiv.textContent = message;
-        errorDiv.style.display = 'block';
-    }
-
-    function resetUpload() {
-        result.style.display = 'none';
-        uploadSection.style.display = 'block';
-        uploadForm.style.display = 'block';
-        loading.style.display = 'none';
-        errorDiv.style.display = 'none';
-        uploadForm.reset();
-    }
-</script>
+{% else %}
+<div class="gallery-empty">
+    <div class="empty-icon">📁</div>
+    <div class="empty-title">Belum ada file</div>
+    <div class="empty-text">Belum ada file yang tersedia</div>
+    
+</div>
+{% endif %}
 {% endblock %}
