@@ -400,13 +400,13 @@
 
 <!-- Orders Section -->
 <div id="ordersSection" style="display:none; animation: fadeInUp 0.4s ease;">
-    <div style="background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.08); border-radius:16px; overflow:hidden;">
-        <div style="padding:16px 20px; background:rgba(255,255,255,0.04); border-bottom:1px solid rgba(255,255,255,0.08); display:grid; grid-template-columns:1fr 120px 80px 100px 90px 140px; font-size:11px; color:rgba(255,255,255,0.4); text-transform:uppercase; letter-spacing:1px; font-weight:600;">
+    <div style="background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.08); border-radius:16px; overflow:hidden; overflow-x:auto; -webkit-overflow-scrolling:touch;">
+        <div style="padding:16px 20px; background:rgba(255,255,255,0.04); border-bottom:1px solid rgba(255,255,255,0.08); display:grid; grid-template-columns:1fr 120px 80px 100px 90px 140px; font-size:11px; color:rgba(255,255,255,0.4); text-transform:uppercase; letter-spacing:1px; font-weight:600; min-width:700px;">
             <div>Pembeli</div><div>Tipe</div><div>Jumlah</div><div>Metode</div><div>Status</div><div>Aksi</div>
         </div>
         {% if orders %}
             {% for order in orders %}
-            <div style="display:grid; grid-template-columns:1fr 120px 80px 100px 90px 140px; padding:14px 20px; border-bottom:1px solid rgba(255,255,255,0.05); align-items:center; font-size:13px;" id="order-{{ order.order_id }}">
+            <div style="display:grid; grid-template-columns:1fr 120px 80px 100px 90px 140px; padding:14px 20px; border-bottom:1px solid rgba(255,255,255,0.05); align-items:center; font-size:13px; min-width:700px;" id="order-{{ order.order_id }}">
                 <div>
                     <div style="font-weight:600; color:rgba(255,255,255,0.9);">{{ order.name or '-' }}</div>
                     <div style="font-size:11px; color:rgba(255,255,255,0.4);">{{ order.email }}</div>
