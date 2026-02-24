@@ -195,7 +195,7 @@
                 </button>
                 <input type="file" id="fileInput" name="file" class="file-input" accept="image/*,video/*">
                 <div class="upload-subtext" style="margin-top: 20px; font-size: 12px;">
-                    Gambar & Video • Maks 200MB
+                    Gambar & Video • Maks 100MB
                 </div>
             </div>
         </div>
@@ -277,9 +277,9 @@
 
     function handleFile(file) {
         // Validate file
-        const maxSize = 200 * 1024 * 1024; // 200MB
+        const maxSize = 100 * 1024 * 1024; // 100MB
         if (file.size > maxSize) {
-            showError('File terlalu besar. Ukuran maksimal 200MB.');
+            showError('File terlalu besar. Ukuran maksimal 100MB.');
             return;
         }
 
@@ -292,30 +292,65 @@
         uploadFile(file);
     }
 
-    function uploadFile(file) {
-        const formData = new FormData(uploadForm);
-
-        // Show loading
+    async function uploadFile(file) {
         uploadForm.style.display = 'none';
         loading.style.display = 'block';
         errorDiv.style.display = 'none';
 
-        fetch('/upload', {
-            method: 'POST',
-            body: formData
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                showResult(data);
-            } else {
-                showError(data.error || 'Upload gagal. Silakan coba lagi.');
-            }
-        })
-        .catch(error => {
-            showError('Upload gagal. Silakan coba lagi.');
-            console.error('Error:', error);
-        });
+        try {
+            // Step 1: Minta signature dari server
+            const signRes = await fetch('/sign-upload', { method: 'POST' });
+            const signData = await signRes.json();
+            if (!signData.success) throw new Error(signData.error || 'Gagal mendapatkan signature');
+
+            // Step 2: Upload langsung ke Cloudinary dari browser (bypass Vercel)
+            const formData = new FormData();
+            formData.append('file', file);
+            formData.append('public_id', signData.public_id);
+            formData.append('timestamp', signData.timestamp);
+            formData.append('api_key', signData.api_key);
+            formData.append('signature', signData.signature);
+
+            const uploadRes = await fetch(
+                `https://api.cloudinary.com/v1_1/${signData.cloud_name}/auto/upload`,
+                { method: 'POST', body: formData }
+            );
+            const uploadResult = await uploadRes.json();
+            if (uploadResult.error) throw new Error(uploadResult.error.message);
+
+            // Step 3: Simpan metadata ke Supabase lewat server
+            const title = document.querySelector('input[name="title"]').value.trim();
+            const description = document.querySelector('textarea[name="description"]').value.trim();
+            const password = document.querySelector('input[name="password"]').value.trim();
+
+            const saveRes = await fetch('/save-upload', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    file_id: signData.file_id,
+                    secure_url: uploadResult.secure_url,
+                    public_id: uploadResult.public_id,
+                    format: uploadResult.format,
+                    resource_type: uploadResult.resource_type,
+                    bytes: uploadResult.bytes,
+                    original_filename: file.name,
+                    width: uploadResult.width,
+                    height: uploadResult.height,
+                    duration: uploadResult.duration,
+                    title: title,
+                    description: description,
+                    password: password,
+                })
+            });
+            const saveData = await saveRes.json();
+            if (!saveData.success) throw new Error(saveData.error || 'Gagal menyimpan data');
+
+            showResult(saveData);
+
+        } catch (err) {
+            showError('Upload gagal: ' + err.message);
+            console.error('Error:', err);
+        }
     }
 
     function showResult(data) {
