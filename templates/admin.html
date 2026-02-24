@@ -448,6 +448,54 @@
 </div>
 
 <div id="filesSection">
+<!-- Upload Section -->
+<div style="margin-bottom:32px; animation: fadeInUp 0.6s ease 0.25s backwards;">
+    <div style="font-size:13px; color:rgba(255,255,255,0.4); text-transform:uppercase; letter-spacing:1.5px; margin-bottom:16px;">Upload File Baru</div>
+    <div style="background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.08); border-radius:16px; padding:24px;">
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-bottom:16px;">
+            <div>
+                <label class="label">Judul</label>
+                <input type="text" id="upTitle" class="input-field" placeholder="Judul file" maxlength="100" style="padding:12px 16px;">
+            </div>
+            <div>
+                <label class="label">Kata Sandi (opsional)</label>
+                <input type="password" id="upPassword" class="input-field" placeholder="Kosongkan = publik" style="padding:12px 16px;">
+            </div>
+        </div>
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-bottom:16px;">
+            <div>
+                <label class="label">Deskripsi (opsional)</label>
+                <input type="text" id="upDescription" class="input-field" placeholder="Deskripsi..." maxlength="500" style="padding:12px 16px;">
+            </div>
+            <div>
+                <label class="label">Tipe Akses</label>
+                <select id="upAccessType" class="input-field" style="padding:12px 16px;" onchange="toggleUpPrice()">
+                    <option value="free">🆓 Gratis</option>
+                    <option value="paid">💳 Berbayar (per video)</option>
+                    <option value="premium">⭐ Premium (langganan)</option>
+                </select>
+            </div>
+        </div>
+        <div id="upPriceField" style="display:none; margin-bottom:16px;">
+            <label class="label">Harga (Rupiah)</label>
+            <input type="number" id="upPrice" class="input-field" placeholder="10000" value="10000" min="1000" style="padding:12px 16px;">
+        </div>
+        <div id="upDropZone" style="border:2px dashed rgba(255,255,255,0.15); border-radius:12px; padding:32px; text-align:center; cursor:pointer; transition:all 0.3s ease;" onclick="document.getElementById('upFileInput').click()">
+            <div style="font-size:32px; margin-bottom:8px;">⚡</div>
+            <div id="upDropLabel" style="color:rgba(255,255,255,0.6); font-size:14px; margin-bottom:4px;">Klik atau drag file di sini</div>
+            <div style="color:rgba(255,255,255,0.3); font-size:12px;">Gambar & Video • Maks 100MB</div>
+            <input type="file" id="upFileInput" style="display:none" accept="image/*,video/*">
+        </div>
+        <div id="upProgress" style="display:none; margin-top:12px;">
+            <div style="background:rgba(255,255,255,0.05); border-radius:50px; height:6px; overflow:hidden;">
+                <div id="upProgressBar" style="height:100%; background:linear-gradient(90deg,#667eea,#764ba2); width:0%; transition:width 0.3s ease; border-radius:50px;"></div>
+            </div>
+            <div id="upProgressText" style="font-size:12px; color:rgba(255,255,255,0.4); margin-top:6px; text-align:center;">Mengupload...</div>
+        </div>
+        <div id="upError" style="display:none; color:#ef4444; font-size:13px; margin-top:10px; padding:10px 16px; background:rgba(239,68,68,0.1); border-radius:8px;"></div>
+    </div>
+</div>
+
 <!-- Toolbar -->
 <div class="toolbar">
     <input type="text" class="search-input" id="searchInput" placeholder="🔍  Cari file..." oninput="filterFiles()">
@@ -734,6 +782,131 @@
         document.getElementById('tabOrders').style.background = tab === 'orders' ? 'rgba(102,126,234,0.15)' : 'transparent';
         document.getElementById('tabOrders').style.color = tab === 'orders' ? '#667eea' : 'rgba(255,255,255,0.5)';
         document.getElementById('tabOrders').style.borderColor = tab === 'orders' ? 'rgba(102,126,234,0.3)' : 'rgba(255,255,255,0.1)';
+    }
+
+
+    // ===== UPLOAD =====
+    function toggleUpPrice() {
+        const at = document.getElementById('upAccessType').value;
+        document.getElementById('upPriceField').style.display = at === 'paid' ? 'block' : 'none';
+    }
+
+    const upDropZone = document.getElementById('upDropZone');
+    const upFileInput = document.getElementById('upFileInput');
+
+    upDropZone.addEventListener('dragover', e => { e.preventDefault(); upDropZone.style.borderColor='#667eea'; });
+    upDropZone.addEventListener('dragleave', () => { upDropZone.style.borderColor='rgba(255,255,255,0.15)'; });
+    upDropZone.addEventListener('drop', e => {
+        e.preventDefault();
+        upDropZone.style.borderColor='rgba(255,255,255,0.15)';
+        if (e.dataTransfer.files.length > 0) handleUpload(e.dataTransfer.files[0]);
+    });
+    upFileInput.addEventListener('change', e => {
+        if (e.target.files.length > 0) handleUpload(e.target.files[0]);
+    });
+
+    async function handleUpload(file) {
+        const maxSize = 100 * 1024 * 1024;
+        if (file.size > maxSize) { showUpError('File terlalu besar. Maksimal 100MB.'); return; }
+        if (!file.type.startsWith('image/') && !file.type.startsWith('video/')) {
+            showUpError('Tipe file tidak valid. Gunakan gambar atau video.'); return;
+        }
+
+        document.getElementById('upError').style.display = 'none';
+        document.getElementById('upProgress').style.display = 'block';
+        document.getElementById('upDropLabel').textContent = file.name;
+        setProgress(0, 'Meminta signature...');
+
+        try {
+            const signRes = await fetch('/sign-upload', { method: 'POST' });
+            const signData = await signRes.json();
+            if (!signData.success) throw new Error(signData.error);
+
+            setProgress(10, 'Mengupload ke Cloudinary...');
+
+            const formData = new FormData();
+            formData.append('file', file);
+            formData.append('public_id', signData.public_id);
+            formData.append('timestamp', signData.timestamp);
+            formData.append('api_key', signData.api_key);
+            formData.append('signature', signData.signature);
+
+            const uploadResult = await new Promise((resolve, reject) => {
+                const xhr = new XMLHttpRequest();
+                xhr.open('POST', `https://api.cloudinary.com/v1_1/${signData.cloud_name}/auto/upload`);
+                xhr.upload.onprogress = e => {
+                    if (e.lengthComputable) {
+                        const pct = Math.round(10 + (e.loaded / e.total) * 80);
+                        setProgress(pct, `Mengupload... ${pct}%`);
+                    }
+                };
+                xhr.onload = () => {
+                    const res = JSON.parse(xhr.responseText);
+                    if (res.error) reject(new Error(res.error.message));
+                    else resolve(res);
+                };
+                xhr.onerror = () => reject(new Error('Upload gagal, cek koneksi internet'));
+                xhr.send(formData);
+            });
+
+            setProgress(95, 'Menyimpan data...');
+
+            const title = document.getElementById('upTitle').value.trim();
+            const description = document.getElementById('upDescription').value.trim();
+            const password = document.getElementById('upPassword').value.trim();
+            const accessType = document.getElementById('upAccessType').value;
+            const price = parseInt(document.getElementById('upPrice')?.value || 10000);
+
+            const saveRes = await fetch('/save-upload', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    file_id: signData.file_id,
+                    secure_url: uploadResult.secure_url,
+                    public_id: uploadResult.public_id,
+                    format: uploadResult.format,
+                    resource_type: uploadResult.resource_type,
+                    bytes: uploadResult.bytes,
+                    original_filename: file.name,
+                    width: uploadResult.width,
+                    height: uploadResult.height,
+                    duration: uploadResult.duration,
+                    title, description, password, access_type: accessType, price,
+                })
+            });
+            const saveData = await saveRes.json();
+            if (!saveData.success) throw new Error(saveData.error);
+
+            setProgress(100, '✅ Upload berhasil!');
+            showToast('✅ Upload berhasil!');
+
+            // Reset form
+            ['upTitle','upDescription','upPassword'].forEach(id => document.getElementById(id).value = '');
+            document.getElementById('upAccessType').value = 'free';
+            document.getElementById('upPriceField').style.display = 'none';
+            document.getElementById('upDropLabel').textContent = 'Klik atau drag file di sini';
+            upFileInput.value = '';
+
+            setTimeout(() => {
+                document.getElementById('upProgress').style.display = 'none';
+                location.reload();
+            }, 1200);
+
+        } catch (err) {
+            document.getElementById('upProgress').style.display = 'none';
+            showUpError('Upload gagal: ' + err.message);
+        }
+    }
+
+    function setProgress(pct, text) {
+        document.getElementById('upProgressBar').style.width = pct + '%';
+        document.getElementById('upProgressText').textContent = text;
+    }
+
+    function showUpError(msg) {
+        const el = document.getElementById('upError');
+        el.textContent = msg;
+        el.style.display = 'block';
     }
 
     function filterFiles() {
