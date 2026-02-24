@@ -195,7 +195,7 @@
                 </button>
                 <input type="file" id="fileInput" name="file" class="file-input" accept="image/*,video/*">
                 <div class="upload-subtext" style="margin-top: 20px; font-size: 12px;">
-                    Gambar & Video • Maks 200MB
+                    Gambar & Video • Maks 100MB
                 </div>
             </div>
         </div>
@@ -277,9 +277,9 @@
 
     function handleFile(file) {
         // Validate file
-        const maxSize = 200 * 1024 * 1024; // 200MB
+        const maxSize = 100 * 1024 * 1024; // 100MB
         if (file.size > maxSize) {
-            showError('File terlalu besar. Ukuran maksimal 200MB.');
+            showError('File terlalu besar. Ukuran maksimal 100MB.');
             return;
         }
 
