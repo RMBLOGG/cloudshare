@@ -52,13 +52,9 @@ def is_admin(token):
 
 @app.route('/')
 def index():
-    return render_template('index.html')
-
-@app.route('/gallery')
-def gallery():
     result = supabase.table('cloudshare').select('*').order('uploaded_at', desc=True).execute()
     files = [(row['file_id'], row) for row in result.data if not row.get('blocked')]
-    return render_template('gallery.html', files=files)
+    return render_template('index.html', files=files)
 
 @app.route('/<file_id>')
 def view_file(file_id):
