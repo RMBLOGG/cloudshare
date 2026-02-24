@@ -2,21 +2,28 @@ from flask import Flask, render_template, request, jsonify, redirect, session
 import cloudinary
 import cloudinary.uploader
 import cloudinary.api
+import cloudinary.utils
 from supabase import create_client, Client
 from datetime import datetime
 import random
 import string
+import hashlib
+import time
 import os
 
 app = Flask(__name__)
 app.secret_key = os.environ.get('SECRET_KEY', 'your-secret-key-change-this-in-production')
-app.config['MAX_CONTENT_LENGTH'] = 200 * 1024 * 1024  # 200MB
+app.config['MAX_CONTENT_LENGTH'] = 10 * 1024 * 1024  # 10MB untuk request biasa (bukan upload file)
 
 # Cloudinary Configuration
+CLOUDINARY_CLOUD_NAME = os.environ.get('CLOUDINARY_CLOUD_NAME', 'dzfkklsza')
+CLOUDINARY_API_KEY = os.environ.get('CLOUDINARY_API_KEY', '588474134734416')
+CLOUDINARY_API_SECRET = os.environ.get('CLOUDINARY_API_SECRET', '9c12YJe5rZSYSg7zROQuvmVZ7mg')
+
 cloudinary.config(
-    cloud_name=os.environ.get('CLOUDINARY_CLOUD_NAME', 'dzfkklsza'),
-    api_key=os.environ.get('CLOUDINARY_API_KEY', '588474134734416'),
-    api_secret=os.environ.get('CLOUDINARY_API_SECRET', '9c12YJe5rZSYSg7zROQuvmVZ7mg')
+    cloud_name=CLOUDINARY_CLOUD_NAME,
+    api_key=CLOUDINARY_API_KEY,
+    api_secret=CLOUDINARY_API_SECRET
 )
 
 # Supabase Configuration
@@ -45,12 +52,15 @@ def gallery():
 
 @app.route('/<file_id>')
 def view_file(file_id):
+    # Hindari konflik dengan route lain
+    if file_id in ['gallery', 'upload', 'sign-upload', 'save-upload']:
+        return redirect('/')
+
     file_data = get_file(file_id)
     
     if not file_data:
         return render_template('error.html', error="File not found"), 404
     
-    # Check if password protected
     if file_data.get('password'):
         if not session.get(f'auth_{file_id}'):
             return render_template('password.html', file_id=file_id)
@@ -72,67 +82,77 @@ def verify_password(file_id):
     else:
         return jsonify({'success': False, 'error': 'Incorrect password'})
 
-@app.route('/upload', methods=['POST'])
-def upload():
+# =============================================
+# ENDPOINT BARU: Generate signature untuk upload langsung dari browser
+# =============================================
+@app.route('/sign-upload', methods=['POST'])
+def sign_upload():
     try:
-        if 'file' not in request.files:
-            return jsonify({'success': False, 'error': 'No file uploaded'})
-        
-        file = request.files['file']
-        
-        if file.filename == '':
-            return jsonify({'success': False, 'error': 'No file selected'})
-        
-        title = request.form.get('title', '').strip()
-        description = request.form.get('description', '').strip()
-        password = request.form.get('password', '').strip()
-        
-        # Generate unique ID
         file_id = generate_id()
-        
-        # Upload to Cloudinary
-        timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
-        public_id = f"cloudshare_{timestamp}_{file_id}"
-        
-        upload_result = cloudinary.uploader.upload(
-            file,
-            public_id=public_id,
-            resource_type='auto',
-            folder='cloudshare'
-        )
-        
-        # Simpan ke Supabase
+        timestamp = int(time.time())
+        public_id = f"cloudshare/cloudshare_{timestamp}_{file_id}"
+
+        # Params yang akan di-sign
+        params_to_sign = {
+            'public_id': public_id,
+            'timestamp': timestamp,
+        }
+
+        # Generate signature
+        signature = cloudinary.utils.api_sign_request(params_to_sign, CLOUDINARY_API_SECRET)
+
+        return jsonify({
+            'success': True,
+            'signature': signature,
+            'timestamp': timestamp,
+            'public_id': public_id,
+            'api_key': CLOUDINARY_API_KEY,
+            'cloud_name': CLOUDINARY_CLOUD_NAME,
+            'file_id': file_id,
+        })
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)})
+
+# =============================================
+# ENDPOINT BARU: Simpan metadata setelah upload berhasil di browser
+# =============================================
+@app.route('/save-upload', methods=['POST'])
+def save_upload():
+    try:
+        data = request.json
+
+        file_id = data.get('file_id')
+        title = data.get('title', '').strip()
+        description = data.get('description', '').strip()
+        password = data.get('password', '').strip()
+
         row = {
             'file_id': file_id,
-            'cloudinary_url': upload_result['secure_url'],
-            'public_id': upload_result['public_id'],
-            'format': upload_result['format'],
-            'resource_type': upload_result['resource_type'],
-            'bytes': upload_result['bytes'],
-            'original_filename': file.filename,
+            'cloudinary_url': data.get('secure_url'),
+            'public_id': data.get('public_id'),
+            'format': data.get('format'),
+            'resource_type': data.get('resource_type'),
+            'bytes': data.get('bytes'),
+            'original_filename': data.get('original_filename'),
             'uploaded_at': datetime.now().isoformat(),
-            'width': upload_result.get('width'),
-            'height': upload_result.get('height'),
-            'duration': upload_result.get('duration'),
-            'title': title if title else file.filename,
+            'width': data.get('width'),
+            'height': data.get('height'),
+            'duration': data.get('duration'),
+            'title': title if title else data.get('original_filename', 'Untitled'),
             'description': description if description else None,
             'password': password if password else None,
         }
+
         supabase.table('cloudshare').insert(row).execute()
-        
-        # Return share URL
+
         base_url = request.host_url.rstrip('/')
         share_url = f"{base_url}/{file_id}"
-        
+
         return jsonify({
             'success': True,
             'file_id': file_id,
             'url': share_url,
-            'format': upload_result['format'],
-            'resource_type': upload_result['resource_type'],
-            'bytes': upload_result['bytes']
         })
-        
     except Exception as e:
         return jsonify({'success': False, 'error': str(e)})
 
