@@ -5,12 +5,126 @@
 {% block container_width %}1400px{% endblock %}
 
 {% block extra_css %}
-.gallery-header {
-    text-align: center;
-    margin-bottom: 50px;
-    animation: fadeInDown 0.8s ease;
+
+/* ===== STATS BAR ===== */
+.stats-bar {
+    display: flex;
+    gap: 12px;
+    justify-content: center;
+    margin-bottom: 32px;
+    flex-wrap: wrap;
+    animation: fadeInUp 0.6s ease 0.1s backwards;
+}
+.stat-pill {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 16px;
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 50px;
+    font-size: 13px;
+    color: rgba(255,255,255,0.5);
+    font-weight: 500;
+}
+.stat-pill span { color: #fff; font-weight: 700; }
+
+/* ===== TOOLBAR ===== */
+.toolbar {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 24px;
+    flex-wrap: wrap;
+    align-items: center;
+    animation: fadeInUp 0.6s ease 0.2s backwards;
+}
+.search-wrap {
+    flex: 1;
+    min-width: 200px;
+    position: relative;
+}
+.search-wrap::before {
+    content: '🔍';
+    position: absolute;
+    left: 14px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 14px;
+    pointer-events: none;
+}
+.search-input {
+    width: 100%;
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(255,255,255,0.1);
+    padding: 11px 16px 11px 40px;
+    font-size: 14px;
+    color: #fff;
+    border-radius: 50px;
+    font-family: 'Space Grotesk', sans-serif;
+    transition: all 0.3s ease;
+}
+.search-input:focus {
+    outline: none;
+    border-color: rgba(102,126,234,0.5);
+    background: rgba(255,255,255,0.06);
+}
+.search-input::placeholder { color: rgba(255,255,255,0.3); }
+
+.filter-select {
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(255,255,255,0.1);
+    padding: 11px 16px;
+    font-size: 13px;
+    color: rgba(255,255,255,0.7);
+    border-radius: 50px;
+    font-family: 'Space Grotesk', sans-serif;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+.filter-select:focus { outline: none; border-color: rgba(102,126,234,0.4); }
+.filter-select option { background: #1a1a2e; color: #fff; }
+
+.view-toggle {
+    display: flex;
+    gap: 4px;
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 50px;
+    padding: 4px;
+}
+.view-btn {
+    width: 34px;
+    height: 34px;
+    border: none;
+    border-radius: 50px;
+    background: transparent;
+    color: rgba(255,255,255,0.4);
+    cursor: pointer;
+    font-size: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+}
+.view-btn.active {
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    color: #fff;
 }
 
+/* ===== RESULT COUNT ===== */
+.result-count {
+    font-size: 13px;
+    color: rgba(255,255,255,0.35);
+    margin-bottom: 16px;
+    animation: fadeInUp 0.6s ease 0.25s backwards;
+}
+
+/* ===== GALLERY GRID ===== */
+.gallery-header {
+    text-align: center;
+    margin-bottom: 32px;
+    animation: fadeInDown 0.8s ease;
+}
 .gallery-title {
     font-size: 48px;
     font-weight: 700;
@@ -20,10 +134,9 @@
     -webkit-text-fill-color: transparent;
     background-clip: text;
 }
-
 .gallery-subtitle {
     font-size: 15px;
-    color: rgba(255, 255, 255, 0.5);
+    color: rgba(255,255,255,0.5);
     font-weight: 400;
 }
 
@@ -31,52 +144,50 @@
     display: grid;
     grid-template-columns: repeat(3, 1fr);
     gap: 24px;
-    animation: fadeInUp 0.8s ease 0.2s backwards;
+    animation: fadeInUp 0.8s ease 0.3s backwards;
 }
+.gallery-grid.cols-2 { grid-template-columns: repeat(2, 1fr); }
+.gallery-grid.cols-4 { grid-template-columns: repeat(4, 1fr); }
 
+/* ===== CARD ===== */
 .gallery-item {
-    background: rgba(255, 255, 255, 0.04);
-    border: 1px solid rgba(255, 255, 255, 0.08);
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(255,255,255,0.08);
     border-radius: 16px;
     overflow: hidden;
     transition: all 0.3s ease;
     cursor: pointer;
     position: relative;
+    text-decoration: none;
+    display: block;
 }
-
 .gallery-item::before {
     content: '';
     position: absolute;
     inset: 0;
     border-radius: 16px;
     padding: 1px;
-    background: linear-gradient(135deg, rgba(102, 126, 234, 0.3), rgba(118, 75, 162, 0.3));
+    background: linear-gradient(135deg, rgba(102,126,234,0.3), rgba(118,75,162,0.3));
     -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
     mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
     -webkit-mask-composite: xor;
     mask-composite: exclude;
     opacity: 0;
     transition: opacity 0.3s ease;
+    pointer-events: none;
+    z-index: 1;
 }
+.gallery-item:hover { transform: translateY(-4px); background: rgba(255,255,255,0.06); box-shadow: 0 12px 32px rgba(102,126,234,0.15); }
+.gallery-item:hover::before { opacity: 1; }
 
-.gallery-item:hover {
-    transform: translateY(-4px);
-    background: rgba(255, 255, 255, 0.06);
-    box-shadow: 0 12px 32px rgba(102, 126, 234, 0.15);
-}
-
-.gallery-item:hover::before {
-    opacity: 1;
-}
-
+/* ===== THUMBNAIL ===== */
 .gallery-thumbnail {
     width: 100%;
     aspect-ratio: 16 / 9;
-    background: linear-gradient(135deg, rgba(20, 20, 30, 0.8), rgba(30, 30, 40, 0.8));
+    background: linear-gradient(135deg, rgba(20,20,30,0.8), rgba(30,30,40,0.8));
     position: relative;
     overflow: hidden;
 }
-
 .gallery-thumbnail img,
 .gallery-thumbnail video {
     width: 100%;
@@ -84,203 +195,501 @@
     object-fit: cover;
     transition: transform 0.4s ease;
 }
-
 .gallery-item:hover .gallery-thumbnail img,
-.gallery-item:hover .gallery-thumbnail video {
-    transform: scale(1.05);
-}
-
+.gallery-item:hover .gallery-thumbnail video { transform: scale(1.05); }
 .gallery-thumbnail::after {
     content: '';
     position: absolute;
-    bottom: 0;
-    left: 0;
-    width: 100%;
-    height: 50%;
+    bottom: 0; left: 0;
+    width: 100%; height: 50%;
     background: linear-gradient(to bottom, transparent, rgba(0,0,0,0.6));
     pointer-events: none;
 }
 
+/* ===== BADGES ON THUMBNAIL ===== */
 .gallery-lock {
     position: absolute;
-    top: 14px;
-    right: 14px;
-    width: 36px;
-    height: 36px;
-    background: rgba(0, 0, 0, 0.6);
+    top: 10px; right: 10px;
+    width: 32px; height: 32px;
+    background: rgba(0,0,0,0.6);
     backdrop-filter: blur(10px);
     border-radius: 8px;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 18px;
+    font-size: 15px;
     z-index: 10;
-    border: 1px solid rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255,255,255,0.1);
+}
+.access-badge {
+    position: absolute;
+    top: 10px; left: 10px;
+    padding: 4px 10px;
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: 700;
+    z-index: 10;
+    backdrop-filter: blur(8px);
+    letter-spacing: 0.3px;
+}
+.access-badge.free { background: rgba(16,185,129,0.85); color: #fff; }
+.access-badge.paid { background: rgba(245,158,11,0.9); color: #fff; }
+.access-badge.premium { background: rgba(102,126,234,0.9); color: #fff; }
+
+.duration-badge {
+    position: absolute;
+    bottom: 8px; right: 8px;
+    background: rgba(0,0,0,0.7);
+    backdrop-filter: blur(6px);
+    color: #fff;
+    font-size: 11px;
+    font-weight: 600;
+    padding: 3px 8px;
+    border-radius: 6px;
+    z-index: 10;
 }
 
+/* Play icon overlay for video */
+.play-overlay {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 5;
+    opacity: 0;
+    transition: opacity 0.3s;
+}
+.gallery-item:hover .play-overlay { opacity: 1; }
+.play-icon {
+    width: 48px; height: 48px;
+    background: rgba(102,126,234,0.9);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 20px;
+    box-shadow: 0 4px 20px rgba(102,126,234,0.5);
+}
+
+/* ===== CARD INFO ===== */
 .gallery-info {
-    padding: 20px;
+    padding: 16px 18px;
 }
-
 .gallery-item-title {
-    font-size: 17px;
+    font-size: 15px;
     font-weight: 600;
     color: #fff;
-    margin-bottom: 10px;
+    margin-bottom: 4px;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
 }
-
+.gallery-item-desc {
+    font-size: 12px;
+    color: rgba(255,255,255,0.35);
+    margin-bottom: 10px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    display: none;
+}
 .gallery-item-meta {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    font-size: 13px;
-    color: rgba(255, 255, 255, 0.4);
+    font-size: 12px;
+    color: rgba(255,255,255,0.4);
 }
-
-.gallery-item-size {
-    display: flex;
-    align-items: center;
-    gap: 5px;
-    font-weight: 500;
-}
-
+.gallery-item-size { display: flex; align-items: center; gap: 4px; font-weight: 500; }
 .gallery-item-format {
-    padding: 5px 10px;
-    background: rgba(102, 126, 234, 0.15);
+    padding: 3px 8px;
+    background: rgba(102,126,234,0.15);
     border-radius: 6px;
     font-weight: 600;
-    color: rgba(102, 126, 234, 0.9);
+    color: rgba(102,126,234,0.9);
     text-transform: uppercase;
-    font-size: 11px;
+    font-size: 10px;
     letter-spacing: 0.5px;
 }
+.gallery-item-date {
+    font-size: 11px;
+    color: rgba(255,255,255,0.25);
+    margin-top: 6px;
+}
 
+/* Price tag */
+.price-tag {
+    font-size: 12px;
+    font-weight: 700;
+    color: #f59e0b;
+    margin-top: 4px;
+}
+
+/* Quick copy button */
+.quick-copy {
+    position: absolute;
+    bottom: 10px; right: 10px;
+    width: 30px; height: 30px;
+    background: rgba(0,0,0,0.6);
+    backdrop-filter: blur(6px);
+    border: 1px solid rgba(255,255,255,0.15);
+    border-radius: 8px;
+    color: rgba(255,255,255,0.7);
+    font-size: 13px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 20;
+    opacity: 0;
+    transition: opacity 0.2s, background 0.2s;
+}
+.gallery-item:hover .quick-copy { opacity: 1; }
+.quick-copy:hover { background: rgba(102,126,234,0.6); color: #fff; }
+
+/* ===== LIST VIEW ===== */
+.gallery-grid.list-view {
+    grid-template-columns: 1fr;
+    gap: 10px;
+}
+.gallery-grid.list-view .gallery-item {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+}
+.gallery-grid.list-view .gallery-thumbnail {
+    width: 140px;
+    min-width: 140px;
+    aspect-ratio: 16/9;
+    border-radius: 0;
+}
+.gallery-grid.list-view .gallery-info {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 12px 18px;
+}
+.gallery-grid.list-view .gallery-item-title {
+    flex: 1;
+    margin-bottom: 0;
+    font-size: 14px;
+}
+.gallery-grid.list-view .gallery-item-desc { display: block; margin-bottom: 0; flex: 1; }
+.gallery-grid.list-view .gallery-item-date { display: none; }
+.gallery-grid.list-view .gallery-item:hover { transform: none; box-shadow: 0 4px 20px rgba(102,126,234,0.12); }
+.gallery-grid.list-view .price-tag { margin-top: 0; }
+.gallery-grid.list-view .play-overlay { display: none; }
+
+/* ===== EMPTY STATE ===== */
 .gallery-empty {
     text-align: center;
-    padding: 100px 20px;
+    padding: 80px 20px;
     animation: fadeInUp 0.8s ease;
 }
+.empty-icon { font-size: 64px; margin-bottom: 20px; opacity: 0.3; }
+.empty-title { font-size: 24px; font-weight: 700; margin-bottom: 10px; color: rgba(255,255,255,0.5); }
+.empty-text { font-size: 14px; color: rgba(255,255,255,0.35); }
 
-.empty-icon {
-    font-size: 80px;
-    margin-bottom: 25px;
-    opacity: 0.3;
+/* ===== HIDDEN ===== */
+.gallery-item.hidden { display: none !important; }
+
+/* ===== TOAST ===== */
+.toast {
+    position: fixed;
+    bottom: 24px; left: 50%;
+    transform: translateX(-50%) translateY(80px);
+    background: rgba(30,30,50,0.95);
+    border: 1px solid rgba(102,126,234,0.3);
+    color: #fff;
+    padding: 12px 24px;
+    border-radius: 50px;
+    font-size: 14px;
+    font-weight: 600;
+    z-index: 9999;
+    transition: transform 0.3s ease;
+    backdrop-filter: blur(10px);
+    pointer-events: none;
 }
+.toast.show { transform: translateX(-50%) translateY(0); }
 
-.empty-title {
-    font-size: 28px;
-    font-weight: 700;
-    margin-bottom: 12px;
-    color: rgba(255, 255, 255, 0.6);
+/* ===== RESPONSIVE ===== */
+@media (max-width: 1100px) {
+    .gallery-grid { grid-template-columns: repeat(3, 1fr); gap: 18px; }
+    .gallery-grid.cols-4 { grid-template-columns: repeat(3, 1fr); }
 }
-
-.empty-text {
-    font-size: 15px;
-    color: rgba(255, 255, 255, 0.4);
-    margin-bottom: 35px;
-}
-
-@media (max-width: 1200px) {
-    .gallery-grid {
-        gap: 20px;
-    }
-}
-
 @media (max-width: 768px) {
-    .gallery-grid {
-        gap: 16px;
-    }
-    
-    .gallery-title {
-        font-size: 36px;
-    }
-    
-    .gallery-subtitle {
-        font-size: 14px;
-    }
-    
-    .gallery-info {
-        padding: 16px;
-    }
-    
-    .gallery-item-title {
-        font-size: 16px;
-    }
-    
-    .gallery-item-meta {
-        font-size: 12px;
-    }
-    
-    .gallery-lock {
-        width: 32px;
-        height: 32px;
-        font-size: 16px;
-    }
+    .gallery-grid, .gallery-grid.cols-4 { grid-template-columns: repeat(2, 1fr); gap: 14px; }
+    .gallery-grid.cols-2 { grid-template-columns: repeat(2, 1fr); }
+    .gallery-title { font-size: 36px; }
+    .toolbar { gap: 8px; }
+    .gallery-grid.list-view .gallery-thumbnail { width: 100px; min-width: 100px; }
 }
-
 @media (max-width: 480px) {
-    .gallery-grid {
-        gap: 12px;
-    }
-    
-    .gallery-info {
-        padding: 14px;
-    }
-    
-    .gallery-item-title {
-        font-size: 15px;
-    }
-    
-    .gallery-item-meta {
-        font-size: 11px;
-    }
-    
-    .gallery-item-format {
-        font-size: 10px;
-        padding: 4px 8px;
-    }
+    .gallery-grid, .gallery-grid.cols-2, .gallery-grid.cols-4 { grid-template-columns: repeat(2, 1fr); gap: 10px; }
+    .stats-bar { gap: 8px; }
+    .stat-pill { font-size: 12px; padding: 6px 12px; }
+    .gallery-grid.list-view { grid-template-columns: 1fr; }
+    .gallery-grid.list-view .gallery-thumbnail { width: 90px; min-width: 90px; }
 }
 {% endblock %}
 
 {% block content %}
 
+<!-- Stats Bar -->
 {% if files %}
-<div class="gallery-grid">
+{% set total_size = namespace(val=0) %}
+{% set total_videos = namespace(val=0) %}
+{% set total_paid = namespace(val=0) %}
+{% for file_id, f in files %}
+    {% set total_size.val = total_size.val + (f.bytes or 0) %}
+    {% if f.resource_type == 'video' %}{% set total_videos.val = total_videos.val + 1 %}{% endif %}
+    {% if f.access_type in ('paid','premium') %}{% set total_paid.val = total_paid.val + 1 %}{% endif %}
+{% endfor %}
+<div class="stats-bar">
+    <div class="stat-pill">📁 <span>{{ files|length }}</span> File</div>
+    <div class="stat-pill">🎬 <span>{{ total_videos.val }}</span> Video</div>
+    <div class="stat-pill">💰 <span>{{ total_paid.val }}</span> Berbayar</div>
+    <div class="stat-pill">💾 <span>
+        {% set mb = total_size.val / 1024 / 1024 %}
+        {% if mb >= 1024 %}{{ "%.1f"|format(mb/1024) }} GB{% else %}{{ "%.1f"|format(mb) }} MB{% endif %}
+    </span></div>
+</div>
+{% endif %}
+
+<!-- Toolbar -->
+<div class="toolbar">
+    <div class="search-wrap">
+        <input type="text" class="search-input" id="searchInput" placeholder="Cari file..." oninput="applyFilters()">
+    </div>
+    <select class="filter-select" id="filterType" onchange="applyFilters()">
+        <option value="all">Semua Tipe</option>
+        <option value="video">🎬 Video</option>
+        <option value="image">🖼️ Gambar</option>
+    </select>
+    <select class="filter-select" id="filterAccess" onchange="applyFilters()">
+        <option value="all">Semua Akses</option>
+        <option value="free">🆓 Gratis</option>
+        <option value="paid">💳 Berbayar</option>
+        <option value="premium">⭐ Premium</option>
+    </select>
+    <select class="filter-select" id="sortBy" onchange="applyFilters()">
+        <option value="newest">🕐 Terbaru</option>
+        <option value="oldest">🕓 Terlama</option>
+        <option value="largest">📦 Terbesar</option>
+        <option value="smallest">🪶 Terkecil</option>
+        <option value="name">🔤 Nama A-Z</option>
+    </select>
+    <div class="view-toggle">
+        <button class="view-btn active" id="btnGrid3" onclick="setView('grid3')" title="3 Kolom">⊞</button>
+        <button class="view-btn" id="btnGrid2" onclick="setView('grid2')" title="2 Kolom">⊟</button>
+        <button class="view-btn" id="btnList" onclick="setView('list')" title="List">☰</button>
+    </div>
+</div>
+
+<div class="result-count" id="resultCount"></div>
+
+{% if files %}
+<div class="gallery-grid" id="galleryGrid">
     {% for file_id, file_data in files %}
-    <a href="/{{ file_id }}" class="gallery-item" style="text-decoration: none;">
+    <a href="/{{ file_id }}"
+       class="gallery-item"
+       data-title="{{ file_data.title|lower }}"
+       data-type="{{ file_data.resource_type }}"
+       data-access="{{ file_data.access_type or 'free' }}"
+       data-size="{{ file_data.bytes or 0 }}"
+       data-date="{{ file_data.uploaded_at or '' }}"
+       data-order="{{ loop.index }}">
+
+        <!-- Thumbnail -->
         <div class="gallery-thumbnail">
+
+            <!-- Access Badge -->
+            {% set at = file_data.access_type or 'free' %}
+            {% if at == 'free' %}
+                <div class="access-badge free">🆓 Gratis</div>
+            {% elif at == 'paid' %}
+                <div class="access-badge paid">💳 Berbayar</div>
+            {% elif at == 'premium' %}
+                <div class="access-badge premium">⭐ Premium</div>
+            {% endif %}
+
+            <!-- Lock badge -->
             {% if file_data.password %}
             <div class="gallery-lock">🔒</div>
             {% endif %}
-            
+
+            <!-- Media -->
             {% if file_data.resource_type == 'image' %}
-                <img src="{{ file_data.cloudinary_url }}" alt="{{ file_data.title }}">
+                <img src="{{ file_data.cloudinary_url }}" alt="{{ file_data.title }}" loading="lazy">
             {% elif file_data.resource_type == 'video' %}
-                <video src="{{ file_data.cloudinary_url }}" muted></video>
+                <video src="{{ file_data.cloudinary_url }}" muted preload="none"
+                       onmouseenter="this.play()" onmouseleave="this.pause();this.currentTime=0;"></video>
+                <div class="play-overlay"><div class="play-icon">▶</div></div>
+                {% if file_data.duration %}
+                <div class="duration-badge">{{ "%d:%02d"|format((file_data.duration|int)//60, (file_data.duration|int)%60) }}</div>
+                {% endif %}
             {% endif %}
         </div>
-        
+
+        <!-- Info -->
         <div class="gallery-info">
             <div class="gallery-item-title">{{ file_data.title }}</div>
+            {% if file_data.description %}
+            <div class="gallery-item-desc">{{ file_data.description }}</div>
+            {% endif %}
+
+            <!-- Price tag untuk paid -->
+            {% if file_data.access_type == 'paid' and file_data.price %}
+            <div class="price-tag">Rp {{ "{:,.0f}".format(file_data.price).replace(",",".") }}</div>
+            {% elif file_data.access_type == 'premium' %}
+            <div class="price-tag" style="color:#667eea;">Butuh Langganan</div>
+            {% endif %}
+
             <div class="gallery-item-meta">
-                <span class="gallery-item-size">
-                    💾 {{ "%.1f"|format(file_data.bytes / 1024 / 1024) }} MB
-                </span>
+                <span class="gallery-item-size">💾 {{ "%.1f"|format((file_data.bytes or 0) / 1024 / 1024) }} MB</span>
                 <span class="gallery-item-format">{{ file_data.format }}</span>
             </div>
+            {% if file_data.uploaded_at %}
+            <div class="gallery-item-date">📅 {{ file_data.uploaded_at[:10] }}</div>
+            {% endif %}
         </div>
+
+        <!-- Quick copy button -->
+        <button class="quick-copy" onclick="copyLink(event, '{{ request.host_url }}{{ file_id }}')" title="Salin link">🔗</button>
     </a>
     {% endfor %}
 </div>
+
+<div class="gallery-empty hidden" id="emptySearch">
+    <div class="empty-icon">🔍</div>
+    <div class="empty-title">Tidak ditemukan</div>
+    <div class="empty-text">Coba kata kunci atau filter yang berbeda</div>
+</div>
+
 {% else %}
 <div class="gallery-empty">
     <div class="empty-icon">📁</div>
     <div class="empty-title">Belum ada file</div>
     <div class="empty-text">Belum ada file yang tersedia</div>
-    
 </div>
 {% endif %}
+
+<!-- Toast -->
+<div class="toast" id="toast"></div>
+
+{% endblock %}
+
+{% block scripts %}
+{{ super() }}
+<script>
+    // ===== STATE =====
+    let currentView = localStorage.getItem('cs_view') || 'grid3';
+
+    // ===== INIT =====
+    document.addEventListener('DOMContentLoaded', () => {
+        setView(currentView, true);
+        applyFilters();
+
+        // Restore filter state
+        const savedSort = localStorage.getItem('cs_sort');
+        if (savedSort) document.getElementById('sortBy').value = savedSort;
+    });
+
+    // ===== VIEW TOGGLE =====
+    function setView(view, silent) {
+        currentView = view;
+        if (!silent) localStorage.setItem('cs_view', view);
+
+        const grid = document.getElementById('galleryGrid');
+        if (!grid) return;
+
+        grid.classList.remove('list-view', 'cols-2', 'cols-4');
+        document.querySelectorAll('.view-btn').forEach(b => b.classList.remove('active'));
+
+        if (view === 'list') {
+            grid.classList.add('list-view');
+            document.getElementById('btnList').classList.add('active');
+        } else if (view === 'grid2') {
+            grid.classList.add('cols-2');
+            document.getElementById('btnGrid2').classList.add('active');
+        } else {
+            document.getElementById('btnGrid3').classList.add('active');
+        }
+    }
+
+    // ===== FILTER + SORT =====
+    function applyFilters() {
+        const search  = document.getElementById('searchInput').value.toLowerCase().trim();
+        const type    = document.getElementById('filterType').value;
+        const access  = document.getElementById('filterAccess').value;
+        const sort    = document.getElementById('sortBy').value;
+
+        localStorage.setItem('cs_sort', sort);
+
+        const items = Array.from(document.querySelectorAll('#galleryGrid .gallery-item'));
+
+        // Filter
+        let visible = items.filter(item => {
+            const matchSearch = !search || item.dataset.title.includes(search);
+            const matchType   = type === 'all' || item.dataset.type === type;
+            const matchAccess = access === 'all' || item.dataset.access === access;
+            return matchSearch && matchType && matchAccess;
+        });
+
+        // Hide all first
+        items.forEach(item => item.classList.add('hidden'));
+
+        // Sort
+        visible.sort((a, b) => {
+            if (sort === 'newest') return a.dataset.date < b.dataset.date ? 1 : -1;
+            if (sort === 'oldest') return a.dataset.date > b.dataset.date ? 1 : -1;
+            if (sort === 'largest') return Number(b.dataset.size) - Number(a.dataset.size);
+            if (sort === 'smallest') return Number(a.dataset.size) - Number(b.dataset.size);
+            if (sort === 'name') return a.dataset.title.localeCompare(b.dataset.title);
+            return 0;
+        });
+
+        // Reorder & show
+        const grid = document.getElementById('galleryGrid');
+        visible.forEach(item => {
+            item.classList.remove('hidden');
+            grid.appendChild(item); // reorder DOM
+        });
+
+        // Update count
+        const count = document.getElementById('resultCount');
+        if (count) {
+            count.textContent = visible.length > 0
+                ? `Menampilkan ${visible.length} dari ${items.length} file`
+                : '';
+        }
+
+        // Empty state
+        const emptySearch = document.getElementById('emptySearch');
+        if (emptySearch) {
+            emptySearch.classList.toggle('hidden', visible.length > 0);
+        }
+    }
+
+    // ===== COPY LINK =====
+    function copyLink(e, url) {
+        e.preventDefault();
+        e.stopPropagation();
+        navigator.clipboard.writeText(url).then(() => {
+            showToast('🔗 Link disalin!');
+            e.target.textContent = '✓';
+            setTimeout(() => e.target.textContent = '🔗', 1500);
+        });
+    }
+
+    // ===== TOAST =====
+    function showToast(msg) {
+        const t = document.getElementById('toast');
+        t.textContent = msg;
+        t.classList.add('show');
+        setTimeout(() => t.classList.remove('show'), 2200);
+    }
+</script>
 {% endblock %}
