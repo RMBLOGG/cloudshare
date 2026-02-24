@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 
 {% block title %}Admin Panel - CloudShare{% endblock %}
-{% block container_width %}1200px{% endblock %}
+{% block container_width %}min(1200px, 100%){% endblock %}
 {% block header_margin %}40px{% endblock %}
 {% block logo_size %}36px{% endblock %}
 {% block tagline %}Panel Admin{% endblock %}
@@ -316,10 +316,22 @@
 }
 @media (max-width: 600px) {
     .stats-grid { grid-template-columns: repeat(2, 1fr); }
-    .table-header-row, .file-row {
-        grid-template-columns: 42px 1fr 80px 100px;
-    }
     .col-size, .col-status, .col-type { display: none; }
+    .table-section { overflow-x: auto; }
+    .table-header-row, .file-row {
+        grid-template-columns: 42px 1fr 80px 120px;
+        min-width: unset;
+    }
+    .toolbar {
+        flex-direction: column;
+        align-items: stretch;
+    }
+    .search-input, .filter-select { width: 100%; }
+    .chart-bars { gap: 4px; }
+    .chart-date { font-size: 8px; }
+    .stat-value { font-size: 22px; }
+    .stat-icon { font-size: 26px; }
+    .action-btn { width: 30px; height: 30px; font-size: 13px; }
 }
 {% endblock %}
 
